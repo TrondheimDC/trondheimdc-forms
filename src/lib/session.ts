@@ -1,3 +1,4 @@
+import * as oauth from "oauth4webapi"
 import { NEXTCLOUD_URL, OAUTH_CLIENT_ID } from "./config"
 
 // "Log in with Nextcloud", entirely in the browser, the way regnskap logs in
@@ -42,39 +43,34 @@ const readToken = (): StoredToken | undefined => {
 
 export const isLoggedIn = () => readToken() !== undefined
 
-const randomString = () =>
-  Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) =>
-    b.toString(16).padStart(2, "0"),
-  ).join("")
-
 // Only a path on this site; "//host" or a full URL would leave it.
 export const safeReturn = (path: unknown) =>
   typeof path === "string" && /^\/(?!\/)[A-Za-z0-9/_-]*$/.test(path)
     ? path
     : "/"
 
-const requestToken = async (params: Record<string, string>) => {
-  const res = await fetch("/oauth/token", {
-    method: "POST",
-    headers: {
-      ...OCS_HEADERS,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams(params),
-  })
-  const json = (await res.json().catch(() => ({}))) as {
-    access_token?: string
-    refresh_token?: string
-    expires_in?: number
-    error?: string
-  }
-  if (!res.ok || !json.access_token || !json.refresh_token) {
-    throw new Error(`Nextcloud: ${json.error ?? res.status}`)
-  }
+// The OAuth protocol is oauth4webapi's. Nextcloud has no discovery, so its
+// endpoints are given here. The token endpoint is this site's /oauth/token,
+// where nginx adds the client secret: the browser sends no client auth.
+const server = (): oauth.AuthorizationServer => ({
+  issuer: NEXTCLOUD_URL,
+  authorization_endpoint: `${NEXTCLOUD_URL}/index.php/apps/oauth2/authorize`,
+  token_endpoint: new URL("/oauth/token", location.origin).href,
+})
+const client: oauth.Client = { client_id: OAUTH_CLIENT_ID }
+const clientAuth = oauth.None()
+const tokenOptions = () => ({
+  headers: { "OCS-APIRequest": "true" },
+  // The token endpoint is on this site: plain http only in development.
+  [oauth.allowInsecureRequests]: location.protocol === "http:",
+})
+
+const storeToken = (response: oauth.TokenEndpointResponse) => {
+  if (!response.refresh_token) throw new Error("No refresh token")
   const token: StoredToken = {
-    accessToken: json.access_token,
-    refreshToken: json.refresh_token,
-    expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000,
+    accessToken: response.access_token,
+    refreshToken: response.refresh_token,
+    expiresAt: Date.now() + (response.expires_in ?? 3600) * 1000,
   }
   // Nextcloud rotates the refresh token on every use: store the new one
   // before anything can try the spent one.
@@ -85,15 +81,15 @@ const requestToken = async (params: Record<string, string>) => {
 // Off to Nextcloud's login and consent. It sends the visitor back to the
 // client's registered redirect URL, /auth/callback.
 export const startLogin = () => {
-  const state = randomString()
+  const state = oauth.generateRandomState()
   sessionStorage.setItem(
     PENDING_KEY,
     JSON.stringify({ state, returnTo: safeReturn(window.location.pathname) }),
   )
-  const url = new URL(`${NEXTCLOUD_URL}/index.php/apps/oauth2/authorize`)
+  const url = new URL(server().authorization_endpoint as string)
   url.search = new URLSearchParams({
     response_type: "code",
-    client_id: OAUTH_CLIENT_ID,
+    client_id: client.client_id,
     state,
   }).toString()
   window.location.assign(url)
@@ -104,8 +100,9 @@ export class LoginError extends Error {
     message: string,
     // Where the login started, to go back to with ?login=failed.
     readonly returnTo: string,
+    options?: ErrorOptions,
   ) {
-    super(message)
+    super(message, options)
   }
 }
 
@@ -120,16 +117,29 @@ export const completeLogin = async (params: URLSearchParams) => {
     returnTo: string
   }
   const back = safeReturn(returnTo)
-  if (params.get("state") !== state) {
-    throw new LoginError("State mismatch", back)
-  }
-  const code = params.get("code")
-  if (!code) throw new LoginError(params.get("error") ?? "No code", back)
 
   try {
-    await requestToken({ grant_type: "authorization_code", code })
+    const as = server()
+    const callback = oauth.validateAuthResponse(as, client, params, state)
+    // Nextcloud has no PKCE (see the top of this file).
+    const response = await oauth.authorizationCodeGrantRequest(
+      as,
+      client,
+      clientAuth,
+      callback,
+      new URL("/auth/callback", location.origin).href,
+      oauth.nopkce,
+      tokenOptions(),
+    )
+    storeToken(
+      await oauth.processAuthorizationCodeResponse(as, client, response),
+    )
   } catch (error) {
-    throw new LoginError(String(error), back)
+    throw new LoginError(
+      error instanceof Error ? error.message : String(error),
+      back,
+      { cause: error },
+    )
   }
   return back
 }
@@ -140,10 +150,19 @@ let refreshing: Promise<StoredToken | undefined> | null = null
 const refresh = () => {
   const token = readToken()
   if (!token) return Promise.resolve(undefined)
-  refreshing ??= requestToken({
-    grant_type: "refresh_token",
-    refresh_token: token.refreshToken,
-  })
+  refreshing ??= (async () => {
+    const as = server()
+    const response = await oauth.refreshTokenGrantRequest(
+      as,
+      client,
+      clientAuth,
+      token.refreshToken,
+      tokenOptions(),
+    )
+    return storeToken(
+      await oauth.processRefreshTokenResponse(as, client, response),
+    )
+  })()
     .catch(() => {
       sessionStorage.removeItem(TOKEN_KEY)
       return undefined
