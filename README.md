@@ -27,9 +27,9 @@ Without Mise: `pnpm install && pnpm dev`.
 
 **Tasks:** `mise run install` | `mise run dev` | `mise run build` | `mise run check` (lint, typecheck, test) | `mise run start`
 
-`pnpm dev` starts `next dev` behind a small stand-in for the production nginx (`scripts/dev.mjs`); open http://localhost:3000/eksempel, a built-in sample form that works without Nextcloud (submitting it is simulated). `/` is a 404 on purpose.
+`pnpm dev` is `next dev`, with nginx's Nextcloud forwarding as rewrites in `next.config.mjs`. Open http://localhost:3000/eksempel, a built-in sample form that works without Nextcloud (submitting it is simulated). `/` is a 404 on purpose.
 
-Against a real Nextcloud: copy `.env.example` to `.env.local` (git-ignored) and fill it in. Logging in is parked (see [docs/deploy.md](./docs/deploy.md)); with it on, logging in locally needs an OAuth client registered for `http://localhost:3000/auth/callback` ([docs/deploy.md](./docs/deploy.md)); its secret goes in `.env.local`, never in a committed file.
+Dev uses the real Nextcloud from `forms.config.json`. To point it at another one, copy `.env.example` to `.env.local` (git-ignored) and set it there.
 
 Submitting from dev sends real answers to that form.
 

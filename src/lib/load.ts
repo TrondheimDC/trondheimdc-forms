@@ -25,7 +25,7 @@ export type Loaded =
 // (/apps/forms/s/{hash}) or a form's own hash (/apps/forms/{hash}), which
 // only works for logged-in users. Public first, since it needs no login.
 // Fetched on every visit, so an edit in Nextcloud shows up on the next load.
-// All paths are same-origin; nginx (or scripts/dev.mjs) forwards them.
+// All paths are same-origin; nginx (or next.config.mjs in dev) forwards them.
 // The share page is always read anonymously (nginx drops any login there).
 export const loadForm = async (hash: string): Promise<Loaded> => {
   if (hash === SAMPLE_HASH) {

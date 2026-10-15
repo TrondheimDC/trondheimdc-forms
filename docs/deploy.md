@@ -49,8 +49,6 @@ Changes to the files under `nginx/` aren't deployed by CD. Copy them over and re
 
 Put the **Client Identifier** in `forms.config.json` (`oauthClientId`, not secret) and push. Keep the **Secret** for step 3. Nextcloud shows it only once.
 
-For local development, register a second client the same way, with `http://localhost:3000/auth/callback` as its redirection URI.
-
 **Optional: skip the account picker.** By default Nextcloud shows a "Connect to your account" page before its login and grant pages. To go straight to login/grant:
 
 ```bash
@@ -107,4 +105,4 @@ pnpm build
 pnpm start                  # serves out/ on http://localhost:3000, without nginx: no Nextcloud paths
 ```
 
-`pnpm dev` is the realistic local setup: it runs the Nextcloud forwarding like nginx does, and the login locations when the login is on.
+`pnpm dev` is the realistic local setup: `next.config.mjs` forwards the Nextcloud paths public forms need, like nginx does.

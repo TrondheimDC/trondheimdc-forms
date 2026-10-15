@@ -7,7 +7,7 @@ export const configForms: ConfigForm[] = config.forms
 export const configForm = (slug: string) =>
   configForms.find((f) => f.slug === slug)
 
-// scripts/dev.mjs sets this when NEXTCLOUD_URL points development elsewhere.
+// Set in .env.local to point development at another Nextcloud.
 export const NEXTCLOUD_URL = (
   process.env.NEXT_PUBLIC_NEXTCLOUD_URL || config.nextcloudUrl
 ).replace(/\/$/, "")
