@@ -3,7 +3,7 @@ import { PHASE_DEVELOPMENT_SERVER } from "next/constants"
 import forms from "./forms.config"
 
 // The build is a static export (output: "export"), served by nginx, which
-// also forwards the Nextcloud paths (nginx/forms.trondheimdc.no.conf). A
+// also forwards the Nextcloud paths (docs/nginx-forms.trondheimdc.no.conf). A
 // static export refuses rewrites even in dev, so dev skips the export and
 // does nginx's rewrites itself: /s/{hash} → s.html, and the two Nextcloud
 // paths public forms need. nginx's other rules (methods, sandboxing

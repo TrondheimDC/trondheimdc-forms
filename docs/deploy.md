@@ -2,15 +2,9 @@
 
 A static site (Next.js `output: "export"`), deployed like forening, utlegg and regnskap. There is no app server and no database.
 
-nginx does a little more here than for forening: it forwards a few Nextcloud paths, so the browser only talks to this site. Edits to forms in Nextcloud never need a deploy.
+nginx does one thing more here than for forening, the way regnskap does for Fiken: it forwards the two Nextcloud paths a public form needs (reading the form, sending an answer), so the browser only talks to this site. Edits to forms in Nextcloud never need a deploy.
 
-**"Log in with Nextcloud" is parked.** Only public forms work on this site for now; a members-only form gets a button to answer it in Nextcloud. The login code is still there, switched off. Turning it on takes all of:
-
-1. `login: true` in `forms.config.ts`, with the real `oauthClientId`.
-2. The OAuth client in Nextcloud (step 2).
-3. The `include /etc/nginx/snippets/forms-login.conf;` line uncommented in the site config, then `setup-server.sh` again (step 3), which installs the login locations and asks for the client secret.
-
-Read the security notes in AGENTS.md first: Nextcloud has no PKCE, so nginx adds the client secret to the token request, and its tokens have no scopes.
+**"Log in with Nextcloud" is parked.** Only public forms work on this site for now; a members-only form gets a button to answer it in Nextcloud. The login code is still there, switched off. Turning it on takes `login: true` in `forms.config.ts` with the real `oauthClientId`, the OAuth client in Nextcloud (step 2), and the login's nginx locations, with the client secret added on the token request. Those locations were in `nginx/forms-login.conf` (`git log --all -- nginx/forms-login.conf`). Read the security notes in AGENTS.md first: Nextcloud has no PKCE, and its tokens have no scopes.
 
 ```text
 push to main
@@ -22,14 +16,11 @@ push to main
 |---|---|
 | Public URL | https://forms.trondheimdc.no |
 | Static files | `/var/www/sites/forms.trondheimdc.no/public` |
-| Nginx site | [nginx/forms.trondheimdc.no.conf](../nginx/forms.trondheimdc.no.conf) |
-| Nginx snippet | [nginx/forms-nextcloud-proxy.conf](../nginx/forms-nextcloud-proxy.conf) → `/etc/nginx/snippets/` |
-| Login locations (parked) | [nginx/forms-login.conf](../nginx/forms-login.conf) → `/etc/nginx/snippets/` |
-| OAuth client secret (parked) | `/etc/nginx/forms-oauth-client.conf` (server only, root, 600) |
+| Nginx site | [nginx-forms.trondheimdc.no.conf](./nginx-forms.trondheimdc.no.conf) → `/etc/nginx/sites-available/forms.trondheimdc.no` |
 | Nginx logs | `/var/www/sites/forms.trondheimdc.no/logs/` |
 | Workflows | `.github/workflows/cd.yml` (push to `main`), `pr.yml` (pull requests to `main`) |
 
-Changes to the files under `nginx/` aren't deployed by CD. Copy them over and reload nginx, the same way as the first time (step 3).
+Changes to the nginx file aren't deployed by CD. Copy it over and reload nginx (step 3).
 
 ## 1. GitHub (one-time)
 
@@ -41,13 +32,15 @@ Changes to the files under `nginx/` aren't deployed by CD. Copy them over and re
 
 ## 2. Nextcloud (one-time, as admin)
 
+Nothing to set up for public forms.
+
 **OAuth client (only with the login on).** Go to Administration settings → Security → OAuth 2.0 clients and add:
 
 | Name | Redirection URI |
 |---|---|
 | `TrondheimDC Forms` | `https://forms.trondheimdc.no/auth/callback` |
 
-Put the **Client Identifier** in `forms.config.ts` (`oauthClientId`, not secret) and push. Keep the **Secret** for step 3. Nextcloud shows it only once.
+Put the **Client Identifier** in `forms.config.ts` (`oauthClientId`, not secret) and push. Keep the **Secret** for the token location in nginx, on the server only. Nextcloud shows it only once.
 
 **Optional: skip the account picker.** By default Nextcloud shows a "Connect to your account" page before its login and grant pages. To go straight to login/grant:
 
@@ -59,16 +52,25 @@ occ config:app:set oauth2 skipAuthPickerApplications --type=array --value='["Tro
 
 ## 3. Server (one-time)
 
-The Nextcloud host, `hub.trondheimdc.no`, is in `nginx/forms-nextcloud-proxy.conf` (two lines) and must match `nextcloudUrl` in `forms.config.ts`.
+The Nextcloud host, `hub.trondheimdc.no`, is in the nginx file (both Nextcloud locations) and must match `nextcloudUrl` in `forms.config.ts`.
 
 ```bash
 # From your machine
-scp docs/setup-server.sh nginx/* <server>:
+scp docs/setup-server.sh docs/nginx-forms.trondheimdc.no.conf <server>:
 # On the server, with the user behind the SSH_USER secret
 sudo bash setup-server.sh <deploy-user>
 ```
 
-[setup-server.sh](./setup-server.sh) installs the snippet, then asks for the OAuth client id and secret. It writes them, base64-encoded, to the root-only `/etc/nginx/forms-oauth-client.conf`. It also creates the site and log directories and gets the certificate from certbot (webroot, port 80 only until the certificate exists). Finally it installs the full nginx config and reloads. It is safe to run again. Leave the id and secret empty to keep the existing file.
+[setup-server.sh](./setup-server.sh) is forening's: it creates the site and log directories, gets the certificate from certbot (webroot, port 80 only until the certificate exists), then installs the full nginx config and reloads. It is safe to run again.
+
+Later changes to the nginx file only need copying over:
+
+```bash
+sudo cp nginx-forms.trondheimdc.no.conf /etc/nginx/sites-available/forms.trondheimdc.no
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Don't run `certbot --nginx` on it: it edits the file in place. The webroot certificate renews without touching it.
 
 ## 4. First deploy
 

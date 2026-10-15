@@ -8,7 +8,7 @@ import { NEXTCLOUD_URL, OAUTH_CLIENT_ID } from "./config"
 //
 // Two differences from Fiken. Nextcloud has no PKCE and wants the client
 // secret on the token request, so that request goes to /oauth/token on this
-// site, where nginx adds the secret (nginx/forms.trondheimdc.no.conf) and
+// site, where nginx adds the secret (the login's nginx locations, docs/deploy.md) and
 // it never reaches this code. And Nextcloud tokens have no scopes: they can
 // do anything the user can. Keep the site free of third-party scripts and
 // raw HTML (see the CSP), and only ever send the token to the Forms paths
