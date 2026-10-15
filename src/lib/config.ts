@@ -1,4 +1,4 @@
-import config from "../../forms.config.json"
+import config from "../../forms.config"
 
 export type ConfigForm = {
   slug: string
@@ -16,8 +16,17 @@ export type ConfigForm = {
   oneAnswer?: boolean
 }
 
-// JSON has no unions: test/config.test.ts checks `lang` is one of the two.
-export const configForms = config.forms as ConfigForm[]
+// The shape of forms.config.ts.
+export type FormsConfig = {
+  // "Log in with Nextcloud", parked for now (see LOGIN_ENABLED).
+  login: boolean
+  nextcloudUrl: string
+  // Not secret: it ends up in the JS bundle anyway.
+  oauthClientId: string
+  forms: ConfigForm[]
+}
+
+export const configForms: ConfigForm[] = config.forms
 
 export const configForm = (slug: string) =>
   configForms.find((f) => f.slug === slug)

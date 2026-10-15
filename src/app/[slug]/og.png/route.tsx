@@ -1,5 +1,5 @@
 // A named form's link preview, /{slug}/og.png: its title on the site's
-// image (src/lib/og-image.tsx), one per form in forms.config.json.
+// image (src/lib/og-image.tsx), one per form in forms.config.ts.
 import { configForm, configForms } from "@/lib/config"
 import { renderOgImage } from "@/lib/og-image"
 

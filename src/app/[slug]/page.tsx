@@ -4,7 +4,7 @@ import { FormLoader } from "@/components/FormLoader"
 import { configForm, configForms } from "@/lib/config"
 import { en, no, OG_IMAGE, pageMetadata } from "@/lib/metadata"
 
-// Named pages for the forms in forms.config.json, for links and QR codes.
+// Named pages for the forms in forms.config.ts, for links and QR codes.
 // Only the name is fixed at build time; the questions load in the browser.
 export const dynamicParams = false
 

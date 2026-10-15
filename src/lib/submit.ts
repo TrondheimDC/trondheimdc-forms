@@ -12,7 +12,7 @@ export class SubmitError extends Error {
   }
 }
 
-// Same origin on purpose: nginx (and next.config.mjs in dev) pass this path through
+// Same origin on purpose: nginx (and next.config.ts in dev) pass this path through
 // to Nextcloud. ncFetch sends it as the logged-in user when there is one,
 // refreshing the token first if it ran out while the form was filled in.
 export const submissionUrl = (formId: number) =>

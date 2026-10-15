@@ -1,9 +1,6 @@
-import { readFileSync } from "node:fs"
-import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js"
-
-const forms = JSON.parse(
-  readFileSync(new URL("./forms.config.json", import.meta.url), "utf8"),
-)
+import type { NextConfig } from "next"
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants"
+import forms from "./forms.config"
 
 // The build is a static export (output: "export"), served by nginx, which
 // also forwards the Nextcloud paths (nginx/forms.trondheimdc.no.conf). A
@@ -11,9 +8,8 @@ const forms = JSON.parse(
 // does nginx's rewrites itself: /s/{hash} → s.html, and the two Nextcloud
 // paths public forms need. nginx's other rules (methods, sandboxing
 // Nextcloud's HTML) are production's; dev only needs the paths to work.
-/** @type {(phase: string) => import("next").NextConfig} */
-export default function nextConfig(phase) {
-  const shared = {
+export default function nextConfig(phase: string): NextConfig {
+  const shared: NextConfig = {
     reactStrictMode: true,
     // Extra hosts allowed to load the dev server, e.g. a remote dev environment.
     // Comma-separated, as in forening, regnskap and checkin.
@@ -30,7 +26,9 @@ export default function nextConfig(phase) {
       process.env.NEXT_PUBLIC_NEXTCLOUD_URL || forms.nextcloudUrl
     ).replace(/\/$/, "")
     // Like nginx: only what the site's own fetches send.
-    const api = [{ type: "header", key: "ocs-apirequest", value: "true" }]
+    const api = [
+      { type: "header" as const, key: "ocs-apirequest", value: "true" },
+    ]
     return {
       ...shared,
       rewrites: async () => [

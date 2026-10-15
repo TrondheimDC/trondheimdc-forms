@@ -6,7 +6,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "lint": "biome check src test scripts",
+    "lint": "biome check src test scripts forms.config.ts next.config.ts",
     "start": "serve out",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

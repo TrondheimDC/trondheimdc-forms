@@ -26,7 +26,7 @@ const taken = new Set([
   "oauth",
 ])
 
-describe("forms.config.json", () => {
+describe("forms.config.ts", () => {
   it.each(
     configForms.map((form) => [form.slug]),
   )("%s is lowercase a-z, 0-9 and single hyphens", (slug) => {
@@ -37,18 +37,6 @@ describe("forms.config.json", () => {
     configForms.map((form) => [form.slug]),
   )("%s doesn't take one of the site's own paths", (slug) => {
     expect(taken.has(slug)).toBe(false)
-  })
-
-  it.each(
-    configForms.map((form) => [form.slug, form.lang]),
-  )("%s has a language the site has, if any", (_slug, lang) => {
-    expect([undefined, "no", "en"]).toContain(lang)
-  })
-
-  it.each(
-    configForms.map((form) => [form.slug, form.oneAnswer]),
-  )("%s has oneAnswer as true or false, if any", (_slug, oneAnswer) => {
-    expect([undefined, true, false]).toContain(oneAnswer)
   })
 
   it("has each slug once", () => {

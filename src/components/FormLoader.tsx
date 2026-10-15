@@ -18,7 +18,7 @@ import {
 import { StatusScreen } from "./StatusScreen"
 
 // Fetches the form from Nextcloud in the browser, so the page is always the
-// form as it is right now. `shareHash` comes from forms.config.json for the
+// form as it is right now. `shareHash` comes from forms.config.ts for the
 // named pages, or from the URL for /s/{hash}. So does `lang`, for a form
 // written in English: the page is prerendered in Norwegian like every other,
 // then switches as it starts, before the form has loaded. EN/NO in the

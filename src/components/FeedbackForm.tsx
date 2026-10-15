@@ -31,7 +31,7 @@ type Status =
 
 // Remembers a sent answer in this browser, for forms that take one answer per
 // person: as Nextcloud says for a logged-in user, or as `oneAnswer` in
-// forms.config.json says for a public link, where Nextcloud takes any number.
+// forms.config.ts says for a public link, where Nextcloud takes any number.
 const sentKey = (form: PublicForm) => `tdc-forms:sent:${form.id}`
 
 // Answers being written, kept for this tab only, so a reload or a trip back

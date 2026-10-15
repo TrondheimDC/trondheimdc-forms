@@ -6,7 +6,7 @@ nginx does a little more here than for forening: it forwards a few Nextcloud pat
 
 **"Log in with Nextcloud" is parked.** Only public forms work on this site for now; a members-only form gets a button to answer it in Nextcloud. The login code is still there, switched off. Turning it on takes all of:
 
-1. `"login": true` in `forms.config.json`, with the real `oauthClientId`.
+1. `login: true` in `forms.config.ts`, with the real `oauthClientId`.
 2. The OAuth client in Nextcloud (step 2).
 3. The `include /etc/nginx/snippets/forms-login.conf;` line uncommented in the site config, then `setup-server.sh` again (step 3), which installs the login locations and asks for the client secret.
 
@@ -47,7 +47,7 @@ Changes to the files under `nginx/` aren't deployed by CD. Copy them over and re
 |---|---|
 | `TrondheimDC Forms` | `https://forms.trondheimdc.no/auth/callback` |
 
-Put the **Client Identifier** in `forms.config.json` (`oauthClientId`, not secret) and push. Keep the **Secret** for step 3. Nextcloud shows it only once.
+Put the **Client Identifier** in `forms.config.ts` (`oauthClientId`, not secret) and push. Keep the **Secret** for step 3. Nextcloud shows it only once.
 
 **Optional: skip the account picker.** By default Nextcloud shows a "Connect to your account" page before its login and grant pages. To go straight to login/grant:
 
@@ -59,7 +59,7 @@ occ config:app:set oauth2 skipAuthPickerApplications --type=array --value='["Tro
 
 ## 3. Server (one-time)
 
-The Nextcloud host, `hub.trondheimdc.no`, is in `nginx/forms-nextcloud-proxy.conf` (two lines) and must match `nextcloudUrl` in `forms.config.json`.
+The Nextcloud host, `hub.trondheimdc.no`, is in `nginx/forms-nextcloud-proxy.conf` (two lines) and must match `nextcloudUrl` in `forms.config.ts`.
 
 ```bash
 # From your machine
@@ -106,4 +106,4 @@ pnpm build
 pnpm start                  # serves out/ on http://localhost:3000, without nginx: no Nextcloud paths
 ```
 
-`pnpm dev` is the realistic local setup: `next.config.mjs` forwards the Nextcloud paths public forms need, like nginx does.
+`pnpm dev` is the realistic local setup: `next.config.ts` forwards the Nextcloud paths public forms need, like nginx does.
