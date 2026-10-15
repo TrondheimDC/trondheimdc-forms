@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation"
+import { LOGIN_ENABLED } from "@/lib/config"
 import { AdminContent } from "./content"
 
 export const metadata = {
@@ -6,5 +8,7 @@ export const metadata = {
 }
 
 export default function Admin() {
+  // Logging in is parked (src/lib/config.ts).
+  if (!LOGIN_ENABLED) notFound()
   return <AdminContent />
 }

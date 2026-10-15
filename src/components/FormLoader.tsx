@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { LOGIN_ENABLED, NEXTCLOUD_URL } from "@/lib/config"
 import { type Loaded, loadForm } from "@/lib/load"
 import { startLogin } from "@/lib/session"
 import { FeedbackForm } from "./FeedbackForm"
@@ -22,6 +23,7 @@ import { StatusScreen } from "./StatusScreen"
 export const FormLoader = ({ shareHash }: { shareHash?: string }) => {
   const { t } = useTranslation("common", { keyPrefix: "load" })
   const [loaded, setLoaded] = useState<Loaded | null>(null)
+  const [hash, setHash] = useState("")
   // /auth/callback sends people back with ?login=failed when it didn't take.
   const [loginFailed, setLoginFailed] = useState(false)
 
@@ -29,6 +31,7 @@ export const FormLoader = ({ shareHash }: { shareHash?: string }) => {
     // /s/{hash}: one prerendered page for every hash, nginx maps them all to it.
     const hash =
       shareHash ?? window.location.pathname.match(/^\/s\/([^/]+)/)?.[1] ?? ""
+    setHash(hash)
     const params = new URLSearchParams(window.location.search)
     if (params.has("login")) {
       setLoginFailed(params.get("login") === "failed")
@@ -63,7 +66,18 @@ export const FormLoader = ({ shareHash }: { shareHash?: string }) => {
               )}
             </>
           }
-          actions={<Button onClick={startLogin}>{t("loginButton")}</Button>}
+          actions={
+            LOGIN_ENABLED ? (
+              <Button onClick={startLogin}>{t("loginButton")}</Button>
+            ) : (
+              // Logging in here is parked: answer it in Nextcloud instead.
+              <Button asChild>
+                <a href={`${NEXTCLOUD_URL}/apps/forms/${hash}`}>
+                  {t("openInNextcloud")}
+                </a>
+              </Button>
+            )
+          }
         />
       )
     case "forbidden":

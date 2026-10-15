@@ -1,6 +1,7 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
+import { LOGIN_ENABLED } from "@/lib/config"
 import { startLogin } from "@/lib/session"
 import { useSession } from "./Session"
 import { TdcWordmark } from "./TdcWordmark"
@@ -50,31 +51,34 @@ export const Header = () => {
             <ThemeToggle />
           </div>
           {/* Known only after mount (the login is in sessionStorage), so
-              the slot keeps its width while it waits. */}
-          <div className="ml-1 flex min-w-20 justify-end">
-            {user === null && (
-              <button
-                type="button"
-                onClick={startLogin}
-                className="rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {t("login")}
-              </button>
-            )}
-            {user && (
-              <button
-                type="button"
-                onClick={() => void logout()}
-                title={t("loggedInAs", { name: user.displayName })}
-                className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span className="hidden max-w-40 truncate text-foreground sm:inline">
-                  {user.displayName}
-                </span>
-                {t("logout")}
-              </button>
-            )}
-          </div>
+              the slot keeps its width while it waits. Parked for now
+              (src/lib/config.ts). */}
+          {LOGIN_ENABLED && (
+            <div className="ml-1 flex min-w-20 justify-end">
+              {user === null && (
+                <button
+                  type="button"
+                  onClick={startLogin}
+                  className="rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {t("login")}
+                </button>
+              )}
+              {user && (
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  title={t("loggedInAs", { name: user.displayName })}
+                  className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <span className="hidden max-w-40 truncate text-foreground sm:inline">
+                    {user.displayName}
+                  </span>
+                  {t("logout")}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>

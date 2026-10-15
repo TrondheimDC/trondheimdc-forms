@@ -1,7 +1,7 @@
 # TrondheimDC Forms
 
 TrondheimDCs eget grensesnitt for skjemaer i Nextcloud Forms: tilbakemeldinger,
-påmeldinger og undersøkelser, i TDC-drakt, for alle eller bare for innloggede.
+påmeldinger og undersøkelser, i TDC-drakt. Foreløpig bare skjemaer som er åpne for alle.
 Skjemaene lages og leses av i Nextcloud som før; denne siden er bare stedet
 folk fyller dem ut.
 
@@ -29,20 +29,17 @@ Without Mise: `pnpm install && pnpm dev`.
 
 `pnpm dev` starts `next dev` behind a small stand-in for the production nginx (`scripts/dev.mjs`); open http://localhost:3000/eksempel, a built-in sample form that works without Nextcloud (submitting it is simulated). `/` is a 404 on purpose.
 
-Against a real Nextcloud: copy `.env.example` to `.env.local` (git-ignored) and fill it in. Logging in locally needs an OAuth client registered for `http://localhost:3000/auth/callback` ([docs/deploy.md](./docs/deploy.md)); its secret goes in `.env.local`, never in a committed file.
+Against a real Nextcloud: copy `.env.example` to `.env.local` (git-ignored) and fill it in. Logging in is parked (see [docs/deploy.md](./docs/deploy.md)); with it on, logging in locally needs an OAuth client registered for `http://localhost:3000/auth/callback` ([docs/deploy.md](./docs/deploy.md)); its secret goes in `.env.local`, never in a committed file.
 
 Submitting from dev sends real answers to that form.
 
 ## Sharing a form
 
-Make the form in Nextcloud Forms as usual. Then the easy way: open https://forms.trondheimdc.no/admin, log in with Nextcloud, find the form and press Enter. The link to share is on your clipboard.
+Make the form in Nextcloud Forms as usual, then **Share** → **Share link**. The link ends in `/apps/forms/s/<hash>`; the one to share is `https://forms.trondheimdc.no/s/<hash>`.
 
-By hand, it is `https://forms.trondheimdc.no/s/<hash>`, with the hash from the form's Nextcloud link:
+Nothing to deploy, and edits to the questions show up right away.
 
-- **For anyone:** in the form, **Share** → **Share link**. The link ends in `/apps/forms/s/<hash>`.
-- **Only for people with a TrondheimDC Nextcloud account:** share it with users or groups (or "all logged-in users"), and take the hash from the form's own address, `/apps/forms/<hash>`. Visitors are asked to log in with Nextcloud first.
-
-Nothing to deploy, and edits to the questions show up right away. People who are logged in answer as themselves, also on public forms, unless the form is set to anonymous.
+Forms only for people with a TrondheimDC Nextcloud account need "Log in with Nextcloud", which is parked for now. Share those with the Nextcloud link as before. A `/s/<hash>` link to one shows a button that opens it in Nextcloud.
 
 For a short, permanent address (QR codes, slides), add the form to `forms.config.json` and push:
 

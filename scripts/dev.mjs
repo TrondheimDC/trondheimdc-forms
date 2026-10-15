@@ -57,19 +57,27 @@ const basic = `Basic ${Buffer.from(`${config.oauthClientId}:${CLIENT_SECRET}`).t
 
 // The Nextcloud locations of the nginx config. `auth`: what happens to the
 // Authorization header ("pass" the browser's, "drop" it, or "client" for
-// the OAuth client's own).
-const routes = [
+// the OAuth client's own). `login`: only with the login on, as
+// nginx/forms-login.conf.
+const allRoutes = [
   {
     path: /^\/oauth\/token$/,
     method: "POST",
     to: () => "/index.php/apps/oauth2/api/v1/token",
     auth: "client",
+    login: true,
   },
-  { path: /^\/ocs\/v2\.php\/cloud\/user$/, method: "GET", auth: "pass" },
+  {
+    path: /^\/ocs\/v2\.php\/cloud\/user$/,
+    method: "GET",
+    auth: "pass",
+    login: true,
+  },
   {
     path: /^\/ocs\/v2\.php\/core\/apppassword$/,
     method: "DELETE",
     auth: "pass",
+    login: true,
   },
   {
     path: /^\/apps\/forms\/s\/[A-Za-z0-9]+$/,
@@ -82,11 +90,13 @@ const routes = [
     method: "GET",
     to: (p) => `/index.php${p}`,
     auth: "pass",
+    login: true,
   },
   {
     path: /^\/ocs\/v2\.php\/apps\/forms\/api\/v3\/forms(\/[0-9]+)?$/,
     method: "GET",
     auth: "pass",
+    login: true,
   },
   {
     path: /^\/ocs\/v2\.php\/apps\/forms\/api\/v3\/forms\/[0-9]+\/submissions$/,
@@ -94,6 +104,8 @@ const routes = [
     auth: "pass",
   },
 ]
+
+const routes = allRoutes.filter((r) => !r.login || config.login)
 
 const readBody = (req) =>
   new Promise((resolve) => {

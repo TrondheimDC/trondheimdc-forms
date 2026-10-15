@@ -12,4 +12,9 @@ export const NEXTCLOUD_URL = (
   process.env.NEXT_PUBLIC_NEXTCLOUD_URL || config.nextcloudUrl
 ).replace(/\/$/, "")
 
+// "Log in with Nextcloud" is parked: only public forms for now. Turning it
+// on also needs the login locations in nginx (nginx/forms-login.conf) and
+// the OAuth client (docs/deploy.md).
+export const LOGIN_ENABLED: boolean = config.login
+
 export const OAUTH_CLIENT_ID = config.oauthClientId

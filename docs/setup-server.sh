@@ -26,18 +26,24 @@ mkdir -p "$SITE/public" "$SITE/logs" /var/www/letsencrypt /etc/nginx/snippets
 chown -R "$DEPLOY_USER" "$SITE/public"
 chown root:adm "$SITE/logs"
 
-# 2. The Nextcloud proxy snippet, and the OAuth client secret for /oauth/token.
+# 2. The Nextcloud proxy snippet. With the login on (the include in the site
+#    config isn't commented out), also the login snippet and the OAuth client
+#    secret for /oauth/token.
 install -m 644 "$HERE/forms-nextcloud-proxy.conf" /etc/nginx/snippets/forms-nextcloud-proxy.conf
 
-read -rp "OAuth client id (empty: keep $OAUTH): " CLIENT_ID
-if [ -n "$CLIENT_ID" ]; then
-  read -rsp "OAuth client secret: " CLIENT_SECRET; echo
-  umask 077
-  printf 'proxy_set_header Authorization "Basic %s";\n' \
-    "$(printf '%s:%s' "$CLIENT_ID" "$CLIENT_SECRET" | base64 -w0)" > "$OAUTH"
-  chown root:root "$OAUTH"; chmod 600 "$OAUTH"
+if grep -Eq '^\s*include /etc/nginx/snippets/forms-login.conf;' "$CONF"; then
+  install -m 644 "$HERE/forms-login.conf" /etc/nginx/snippets/forms-login.conf
+
+  read -rp "OAuth client id (empty: keep $OAUTH): " CLIENT_ID
+  if [ -n "$CLIENT_ID" ]; then
+    read -rsp "OAuth client secret: " CLIENT_SECRET; echo
+    umask 077
+    printf 'proxy_set_header Authorization "Basic %s";\n' \
+      "$(printf '%s:%s' "$CLIENT_ID" "$CLIENT_SECRET" | base64 -w0)" > "$OAUTH"
+    chown root:root "$OAUTH"; chmod 600 "$OAUTH"
+  fi
+  [ -f "$OAUTH" ] || { echo "No $OAUTH yet: run again and give the client id and secret"; exit 1; }
 fi
-[ -f "$OAUTH" ] || { echo "No $OAUTH yet: run again and give the client id and secret"; exit 1; }
 
 # 3. Certificate. Until it exists, serve only the port 80 block so nginx can start
 #    and answer the ACME challenge.
