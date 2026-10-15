@@ -2,7 +2,7 @@
 
 A static site (Next.js `output: "export"`), deployed like forening, utlegg and regnskap. There is no app server and no database.
 
-nginx does one thing more here than for forening, the way regnskap does for Fiken: it forwards the two Nextcloud paths a public form needs (reading the form, sending an answer), so the browser only talks to this site. Edits to forms in Nextcloud never need a deploy.
+nginx does one thing more here than for forening, the way regnskap does for Fiken: it forwards the two Nextcloud paths a public form needs (the share page, to read the form, and the Forms API, to send an answer), so the browser only talks to this site. Edits to forms in Nextcloud never need a deploy.
 
 **"Log in with Nextcloud" is parked.** Only public forms work on this site for now; a members-only form gets a button to answer it in Nextcloud. The login code is still there, switched off. Turning it on takes `login: true` in `forms.config.ts` with the real `oauthClientId`, the OAuth client in Nextcloud (step 2), and the login's nginx locations, with the client secret added on the token request. Those locations were in `nginx/forms-login.conf` (`git log --all -- nginx/forms-login.conf`). Read the security notes in AGENTS.md first: Nextcloud has no PKCE, and its tokens have no scopes.
 
@@ -48,7 +48,7 @@ Put the **Client Identifier** in `forms.config.ts` (`oauthClientId`, not secret)
 occ config:app:set oauth2 skipAuthPickerApplications --type=array --value='["TrondheimDC Forms"]'
 ```
 
-**Optional: real visitor IPs.** Every request reaches Nextcloud from this web server, so Nextcloud's brute-force protection counts all visitors together. Adding this server to `trusted_proxies` in Nextcloud's `config.php` makes Nextcloud read the visitor's IP from `X-Forwarded-For`, which nginx sets.
+**Optional: real visitor IPs.** Every request reaches Nextcloud from this web server, so Nextcloud's brute-force protection counts all visitors together. Adding this server to `trusted_proxies` in Nextcloud's `config.php` makes Nextcloud read the visitor's IP from `X-Forwarded-For`; add `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;` to both Nextcloud locations in the nginx file too.
 
 ## 3. Server (one-time)
 
@@ -85,7 +85,6 @@ curl -sI https://forms.trondheimdc.no/eksempel/og.png | grep -i ^content-type   
 curl -sI https://forms.trondheimdc.no/s/<hash> | head -1                         # 200 (s.html)
 curl -sI https://forms.trondheimdc.no/finnes-ikke | head -1                      # 404
 curl -s -H 'OCS-APIRequest: true' https://forms.trondheimdc.no/apps/forms/s/<public hash> | grep -c initial-state-forms-form   # 1
-curl -sI https://forms.trondheimdc.no/apps/forms/s/<public hash> | head -1       # 403 (no OCS-APIRequest)
 curl -sI -H 'OCS-APIRequest: true' https://forms.trondheimdc.no/ocs/v2.php/cloud/user | head -1   # 404 (login parked; 401 with it on)
 curl -sI http://forms.trondheimdc.no | grep -i ^location                         # → https://
 ```
