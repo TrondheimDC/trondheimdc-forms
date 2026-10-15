@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   type Draft,
   emptyDraft,
+  isDraft,
   OTHER_PREFIX,
   phpRegex,
   toSubmission,
@@ -137,5 +138,31 @@ describe("phpRegex", () => {
     expect(phpRegex(undefined)).toBeNull()
     expect(phpRegex("no delimiters")).toBeNull()
     expect(phpRegex("/(/")).toBeNull()
+  })
+})
+
+describe("isDraft", () => {
+  it("accepts a draft as the form saves it", () => {
+    expect(isDraft(emptyDraft())).toBe(true)
+    expect(
+      isDraft({
+        values: { 1: ["2"], 3: ["a", "b"] },
+        other: { 1: "Lyntaler" },
+        otherChecked: { 1: true },
+      }),
+    ).toBe(true)
+  })
+
+  it("rejects anything else read back from storage", () => {
+    expect(isDraft(null)).toBe(false)
+    expect(isDraft("draft")).toBe(false)
+    expect(isDraft({ values: {}, other: {} })).toBe(false)
+    expect(isDraft({ values: { 1: "2" }, other: {}, otherChecked: {} })).toBe(
+      false,
+    )
+    expect(isDraft({ values: [], other: {}, otherChecked: {} })).toBe(false)
+    expect(isDraft({ values: {}, other: {}, otherChecked: { 1: "yes" } })).toBe(
+      false,
+    )
   })
 })

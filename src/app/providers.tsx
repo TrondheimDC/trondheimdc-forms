@@ -1,5 +1,6 @@
 "use client"
 
+import { MotionConfig } from "motion/react"
 import { ThemeProvider } from "next-themes"
 import { I18nextProvider, useTranslation } from "react-i18next"
 import { Footer } from "@/components/Footer"
@@ -38,7 +39,11 @@ const Shell = ({ children }: { children: React.ReactNode }) => {
 export const Providers = ({ children }: { children: React.ReactNode }) => (
   <I18nextProvider i18n={i18n}>
     <SessionProvider>
-      <Shell>{children}</Shell>
+      {/* Motion's animations follow prefers-reduced-motion, as the CSS
+          ones in globals.css do. */}
+      <MotionConfig reducedMotion="user">
+        <Shell>{children}</Shell>
+      </MotionConfig>
     </SessionProvider>
   </I18nextProvider>
 )

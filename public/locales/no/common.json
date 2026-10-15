@@ -43,7 +43,18 @@
     "alreadyTitle": "Du har allerede svart",
     "alreadyBody": "Takk! Skjemaet tar bare imot ett svar per person.",
     "again": "Send et nytt svar",
-    "answeringAs": "Du svarer som {{name}}."
+    "answeringAs": "Du svarer som {{name}}.",
+    "progress": "{{answered}} av {{total}} besvart",
+    "progressLabel": "Fremdrift",
+    "chosenOf": "{{count}} av {{max}} valgt",
+    "chooseBetween": "Velg mellom {{min}} og {{max}}.",
+    "chooseAtLeast": "Velg minst {{count}}.",
+    "chooseAtMost": "Velg opptil {{count}}.",
+    "rankHint": "Dra, eller bruk pilene.",
+    "moved": "«{{item}}» er nå nummer {{position}}.",
+    "draftRestored": "Vi tok vare på svarene du hadde begynt på.",
+    "clearDraft": "Start på nytt",
+    "chooseExactly": "Velg {{count}}."
   },
   "problem": {
     "required": "Dette spørsmålet må besvares.",

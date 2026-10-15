@@ -43,7 +43,18 @@
     "alreadyTitle": "You have already answered",
     "alreadyBody": "Thanks! This form takes one answer per person.",
     "again": "Send another answer",
-    "answeringAs": "You are answering as {{name}}."
+    "answeringAs": "You are answering as {{name}}.",
+    "progress": "{{answered}} of {{total}} answered",
+    "progressLabel": "Progress",
+    "chosenOf": "{{count}} of {{max}} chosen",
+    "chooseBetween": "Choose between {{min}} and {{max}}.",
+    "chooseAtLeast": "Choose at least {{count}}.",
+    "chooseAtMost": "Choose up to {{count}}.",
+    "rankHint": "Drag, or use the arrows.",
+    "moved": "“{{item}}” is now number {{position}}.",
+    "draftRestored": "We kept the answers you had started on.",
+    "clearDraft": "Start over",
+    "chooseExactly": "Choose {{count}}."
   },
   "problem": {
     "required": "This question is required.",

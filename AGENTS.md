@@ -30,6 +30,8 @@ This repo is public. Nothing secret goes in it, not even briefly: git history ke
 - **Status screens.** Every dead end and end state (404, errors, closed, log in, no access, sent) is a `StatusScreen` with a drawing from `src/components/illustrations.tsx`, after checkin's error screens.
 - **Question types.** `src/lib/forms.ts` lists what is rendered (`SUPPORTED_TYPES`). A form with any other type (file, grid) shows a link to the same form in Nextcloud instead of half a form.
 - **Validation** mirrors `SubmissionService::validateSubmission()` in nextcloud/forms (`src/lib/answers.ts`), so Nextcloud only rejects what the browser couldn't know. Its message is shown as-is when it does.
+- **Filling in.** Problems show once a question is left (unanswered required ones only after a try at submitting) and clear as soon as they're fixed. Submitting with problems focuses the first and shakes the cards. Enter in a one-line field goes to the next question. Answers being written are kept in `sessionStorage` (`tdc-forms:draft:{id}`), not `localStorage`, so the next person on a shared machine doesn't find them.
+- **Motion.** CSS for most of it (`.form-*`, `.choice-*`, `.confetti` in `globals.css`); [`motion`](https://motion.dev) only for the ranking's drag and heights that animate to `auto`. Both follow `prefers-reduced-motion`.
 - **i18n.** Every page is prerendered in Norwegian. English is a client-side switch (`src/i18n.ts`, `react-i18next`). The forms themselves are in whatever language they were written in, in Nextcloud.
 - **Icons.** `src/app/icon.svg` is the source; `node scripts/build-icons.mjs` renders the favicon, apple icon and manifest icons. `src/app/og.png/route.tsx` is the link preview, rendered at build time.
 

@@ -261,6 +261,8 @@
   --color-fg-accent-2: var(--color-pink);
   --color-fg-accent-3: var(--color-blue-1);
   --color-fg-always-dark: var(--color-black-3);
+  /* Forms only: ink on --color-fg-brand (ticks, chosen steps). */
+  --color-fg-on-brand: var(--color-fg-always-dark);
 
   /* trondheimdc.no's site extensions */
   --color-fg-muted: color-mix(in srgb, var(--color-fg-base) 64%, var(--color-bg-base));
@@ -305,6 +307,7 @@
   --color-border-strong: color-mix(in srgb, var(--color-fg-base) 28%, transparent);
   --color-overlay: color-mix(in srgb, var(--color-black) 55%, transparent);
   --color-fg-danger: var(--color-red-4);
+  --color-fg-on-brand: var(--color-white-1);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.14);
@@ -339,6 +342,7 @@
     --color-border-strong: color-mix(in srgb, var(--color-fg-base) 28%, transparent);
     --color-overlay: color-mix(in srgb, var(--color-black) 55%, transparent);
     --color-fg-danger: var(--color-red-4);
+    --color-fg-on-brand: var(--color-white-1);
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
     --shadow-md: 0 4px 12px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.14);
@@ -375,6 +379,7 @@
   --color-success: var(--color-bg-success);
   --color-danger: var(--color-fg-danger);
   --color-always-dark: var(--color-fg-always-dark);
+  --color-on-brand: var(--color-fg-on-brand);
 
   /* Brand extras, for one-off accents outside the shadcn palette */
   --color-brand-pink: var(--color-fg-accent-2);
@@ -401,6 +406,11 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  /* Clear of the fixed header when the browser scrolls something into
+     view, such as a focused field. */
+  html {
+    scroll-padding-top: 6rem;
   }
   body {
     @apply bg-background text-foreground font-sans;
@@ -656,5 +666,193 @@
   .forms-loading-line,
   .forms-loading-label {
     animation: none;
+  }
+}
+
+/* =====================================================================
+   The form (components/FeedbackForm.tsx, Question.tsx): cards rise in one
+   after another, the number on a card turns into a tick once it is
+   answered, options tick and dot in with a little spring, and a sent form
+   gets confetti.
+   ===================================================================== */
+.form-rise {
+  animation: status-rise-small 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* --i is the position on the page; past the first screenful everything
+     comes in together. */
+  animation-delay: calc(min(var(--i, 0), 8) * 55ms + 40ms);
+}
+
+.question-badge {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-top: 0.0625rem;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 9999px;
+  font-family: var(--font-family-mono);
+  font-size: 0.8125rem;
+  line-height: 1;
+  color: var(--color-fg-muted);
+  transition:
+    background-color var(--duration-normal) var(--ease-default),
+    border-color var(--duration-normal) var(--ease-default);
+}
+.question-badge-number {
+  transition:
+    opacity var(--duration-fast) var(--ease-default),
+    scale var(--duration-normal) var(--ease-default);
+}
+.question-badge-tick {
+  position: absolute;
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: var(--color-fg-on-brand);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--duration-normal) var(--ease-out);
+}
+[data-answered] .question-badge {
+  background-color: var(--color-fg-brand);
+  border-color: var(--color-fg-brand);
+  animation: choice-pop 0.4s var(--ease-spring);
+}
+[data-answered] .question-badge-number {
+  opacity: 0;
+  scale: 0.4;
+}
+[data-answered] .question-badge-tick {
+  stroke-dashoffset: 0;
+  transition-delay: 80ms;
+}
+[data-invalid] .question-badge {
+  border-color: var(--color-bg-danger);
+  color: var(--color-fg-danger);
+}
+
+/* Checkbox and radio, drawn after their hidden native input (ui/field.tsx). */
+.choice-box {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 2px solid var(--color-border-strong);
+  background-color: var(--color-bg-base);
+  transition:
+    background-color var(--duration-fast) var(--ease-default),
+    border-color var(--duration-fast) var(--ease-default);
+}
+label:hover > .choice-box {
+  border-color: var(--color-fg-brand);
+}
+.choice-tick {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: none;
+  stroke: var(--color-fg-on-brand);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.12s var(--ease-default);
+}
+.choice-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-fg-on-brand);
+  scale: 0;
+  transition: scale 0.12s var(--ease-default);
+}
+input:checked + .choice-box {
+  border-color: var(--color-fg-brand);
+  background-color: var(--color-fg-brand);
+  animation: choice-pop 0.3s var(--ease-spring);
+}
+input:checked + .choice-box .choice-tick {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.25s var(--ease-out) 60ms;
+}
+input:checked + .choice-box .choice-dot {
+  scale: 1;
+  transition: scale 0.3s var(--ease-spring) 40ms;
+}
+input[aria-invalid="true"]:not(:checked) + .choice-box {
+  border-color: var(--color-bg-danger);
+}
+input:checked + .scale-step {
+  animation: choice-pop 0.35s var(--ease-spring);
+}
+
+.form-progress {
+  transition: scale var(--duration-slow) var(--ease-out);
+}
+
+.submit-spinner {
+  width: 1em;
+  height: 1em;
+  border: 2.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 9999px;
+  animation: spin 0.7s linear infinite;
+}
+
+.confetti {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 12px;
+  margin: -6px 0 0 -4px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti 1.6s cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+
+@keyframes choice-pop {
+  0% { scale: 0.8; }
+  60% { scale: 1.08; }
+  100% { scale: 1; }
+}
+@keyframes confetti {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(0.3);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), calc(var(--y) + 110px))
+      rotate(calc(var(--r) * 1.6)) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-rise,
+  .question-badge,
+  .choice-box,
+  input:checked + .choice-box,
+  input:checked + .scale-step,
+  [data-answered] .question-badge {
+    animation: none;
+  }
+  .form-progress {
+    transition: none;
+  }
+  .confetti {
+    display: none;
   }
 }

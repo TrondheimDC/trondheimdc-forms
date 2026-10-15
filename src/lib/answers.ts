@@ -16,6 +16,26 @@ export const emptyDraft = (): Draft => ({
   otherChecked: {},
 })
 
+// A draft as kept in sessionStorage: checked, not trusted, since it is read
+// back from outside the app.
+export const isDraft = (value: unknown): value is Draft => {
+  if (typeof value !== "object" || value === null) return false
+  const { values, other, otherChecked } = value as Record<string, unknown>
+  const record = (v: unknown, ok: (item: unknown) => boolean) =>
+    typeof v === "object" &&
+    v !== null &&
+    !Array.isArray(v) &&
+    Object.values(v).every(ok)
+  return (
+    record(
+      values,
+      (v) => Array.isArray(v) && v.every((s) => typeof s === "string"),
+    ) &&
+    record(other, (v) => typeof v === "string") &&
+    record(otherChecked, (v) => typeof v === "boolean")
+  )
+}
+
 // Constants::QUESTION_EXTRASETTINGS_OTHER_PREFIX in nextcloud/forms.
 export const OTHER_PREFIX = "system-other-answer:"
 
