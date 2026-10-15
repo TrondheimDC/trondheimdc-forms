@@ -7,9 +7,13 @@ export type ConfigForm = {
   title: string
   // The link preview's text, if the site's own doesn't fit.
   description?: string
+  // The language the form is written in, for the page around it. The site
+  // starts in Norwegian; "en" starts this page in English instead.
+  lang?: "no" | "en"
 }
 
-export const configForms: ConfigForm[] = config.forms
+// JSON has no unions: test/config.test.ts checks `lang` is one of the two.
+export const configForms = config.forms as ConfigForm[]
 
 export const configForm = (slug: string) =>
   configForms.find((f) => f.slug === slug)

@@ -19,13 +19,26 @@ import { StatusScreen } from "./StatusScreen"
 
 // Fetches the form from Nextcloud in the browser, so the page is always the
 // form as it is right now. `shareHash` comes from forms.config.json for the
-// named pages, or from the URL for /s/{hash}.
-export const FormLoader = ({ shareHash }: { shareHash?: string }) => {
-  const { t } = useTranslation("common", { keyPrefix: "load" })
+// named pages, or from the URL for /s/{hash}. So does `lang`, for a form
+// written in English: the page is prerendered in Norwegian like every other,
+// then switches as it starts, before the form has loaded. EN/NO in the
+// header still switch it back.
+export const FormLoader = ({
+  shareHash,
+  lang,
+}: {
+  shareHash?: string
+  lang?: "no" | "en"
+}) => {
+  const { t, i18n } = useTranslation("common", { keyPrefix: "load" })
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [hash, setHash] = useState("")
   // /auth/callback sends people back with ?login=failed when it didn't take.
   const [loginFailed, setLoginFailed] = useState(false)
+
+  useEffect(() => {
+    if (lang && i18n.language !== lang) void i18n.changeLanguage(lang)
+  }, [lang, i18n])
 
   useEffect(() => {
     // /s/{hash}: one prerendered page for every hash, nginx maps them all to it.

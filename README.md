@@ -49,6 +49,6 @@ For a short, permanent address (QR codes, slides), add the form to `forms.config
 
 Name it `{event}-{year}` for the event's main form (the feedback), and `{event}-{year}-{purpose}` for the rest (`tdc-2026-committee`): lowercase `a-z`, `0-9` and hyphens, no æøå, short enough to type off a slide. The year keeps old QR codes pointing at old forms. Once a link is out, never rename or reuse it: leave a finished form in the list and it shows as closed. `pnpm test` stops a slug that breaks these rules or takes one of the site's own paths (`s`, `admin`, `fonts` and so on).
 
-That also gives the link its own preview in Slack, LinkedIn and so on: the title on TDC's image, at `/{slug}/og.png`. Add `"description"` for a line of text under it. A `/s/<hash>` link always gets the general preview: the form only loads in the browser, and link previews don't run JavaScript. So for a link that will be shared widely, add a slug.
+That also gives the link its own preview in Slack, LinkedIn and so on: the title on TDC's image, at `/{slug}/og.png`. Add `"description"` for a line of text under it, and `"lang": "en"` for a form written in English, so the page around it starts in English too. A `/s/<hash>` link always gets the general preview: the form only loads in the browser, and link previews don't run JavaScript. So for a link that will be shared widely, add a slug.
 
 See [AGENTS.md](./AGENTS.md) for how it works and [docs/deploy.md](./docs/deploy.md) for deploying.

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import en from "../../public/locales/en/common.json"
 import no from "../../public/locales/no/common.json"
 
 export const SITE_URL = "https://forms.trondheimdc.no"
@@ -6,7 +7,7 @@ export const SITE_URL = "https://forms.trondheimdc.no"
 // Page titles and descriptions are read straight from the Norwegian locale:
 // every page is prerendered once, in Norwegian, and that is what crawlers and
 // link previews see. Switching to English happens in the browser afterwards.
-export { no }
+export { en, no }
 
 // Rendered by app/og.png/route.tsx, which reads its size from here.
 export const OG_IMAGE = {
@@ -23,11 +24,13 @@ export const pageMetadata = ({
   description,
   path,
   image = OG_IMAGE,
+  lang = "no",
 }: {
   title?: string // page name only; omit on the front page
   description: string
   path: string // e.g. "/tdc-2026"
   image?: typeof OG_IMAGE
+  lang?: "no" | "en"
 }): Metadata => ({
   ...(title ? { title } : {}),
   description,
@@ -35,7 +38,7 @@ export const pageMetadata = ({
   openGraph: {
     type: "website",
     siteName: "TrondheimDC",
-    locale: "nb_NO",
+    locale: lang === "en" ? "en_GB" : "nb_NO",
     title: title ? `TrondheimDC | ${title}` : "TrondheimDC",
     description,
     url: path,

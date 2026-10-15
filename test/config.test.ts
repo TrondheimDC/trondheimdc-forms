@@ -39,6 +39,12 @@ describe("forms.config.json", () => {
     expect(taken.has(slug)).toBe(false)
   })
 
+  it.each(
+    configForms.map((form) => [form.slug, form.lang]),
+  )("%s has a language the site has, if any", (_slug, lang) => {
+    expect([undefined, "no", "en"]).toContain(lang)
+  })
+
   it("has each slug once", () => {
     const slugs = configForms.map((form) => form.slug)
     expect(new Set(slugs).size).toBe(slugs.length)
