@@ -458,14 +458,10 @@ const Scale = ({ question: q, draft, problem, setValues }: ControlProps) => {
   const long = steps.length > 7
 
   return (
-    // Every step gets an equal share of the row, up to a comfortable size,
-    // so even 0 to 10 stays on one line on a phone; the end labels sit
-    // under the ends. Centred in the card: on a wide screen a short scale
-    // looks stranded on the left.
-    <div
-      className="mx-auto flex w-full flex-col gap-2"
-      style={{ maxWidth: `${steps.length * 3.75}rem` }}
-    >
+    // Every step gets an equal share of the card's width, so the scale
+    // lines up with the question and description on both edges, and the end
+    // labels sit under the ends. Even 0 to 10 stays on one line on a phone.
+    <div className="flex w-full flex-col gap-2">
       <div
         className={cn(
           "grid sm:gap-2",
