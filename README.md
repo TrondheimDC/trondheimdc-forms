@@ -44,8 +44,10 @@ Forms only for people with a TrondheimDC Nextcloud account need "Log in with Nex
 For a short, permanent address (QR codes, slides), add the form to `forms.config.json` and push:
 
 ```json
-{ "slug": "tdc-2026", "shareHash": "<hash>", "title": "Tilbakemelding på TDC 2026" }
+{ "slug": "tdc-2026-feedback", "shareHash": "<hash>", "title": "Tilbakemelding på TDC 2026" }
 ```
+
+Name it `{event}-{year}-{purpose}`: lowercase `a-z`, `0-9` and hyphens, no æøå, short enough to type off a slide. The year keeps old QR codes pointing at old forms. Once a link is out, never rename or reuse it: leave a finished form in the list and it shows as closed. `pnpm test` stops a slug that breaks these rules or takes one of the site's own paths (`s`, `admin`, `fonts` and so on).
 
 That also gives the link its own preview in Slack, LinkedIn and so on: the title on TDC's image, at `/{slug}/og.png`. Add `"description"` for a line of text under it. A `/s/<hash>` link always gets the general preview: the form only loads in the browser, and link previews don't run JavaScript. So for a link that will be shared widely, add a slug.
 
