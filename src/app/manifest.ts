@@ -1,14 +1,14 @@
 import type { MetadataRoute } from "next"
-import { no } from "@/lib/metadata"
+import { copy } from "@/copy"
 
 export const dynamic = "force-static"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "TrondheimDC Skjemaer",
-    short_name: "TDC Skjemaer",
-    description: no.meta.description,
-    lang: "nb",
+    name: "TrondheimDC Forms",
+    short_name: "TDC Forms",
+    description: copy.meta.description,
+    lang: "en",
     // There is no front page (/ is a 404); every form has its own link.
     display: "browser",
     background_color: "#0f0f0f",

@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect } from "react"
-import { useTranslation } from "react-i18next"
 import { ErrorIllustration } from "@/components/illustrations"
 import { StatusScreen } from "@/components/StatusScreen"
 import { Button } from "@/components/ui/button"
+import { copy } from "@/copy"
 
-// A page crashed while rendering. The layout (header, i18n) still stands.
+// A page crashed while rendering. The layout (header, theme) still stands.
 export default function ErrorPage({
   error,
   reset,
@@ -14,8 +14,6 @@ export default function ErrorPage({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  const { t } = useTranslation("common", { keyPrefix: "error" })
-
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -24,11 +22,11 @@ export default function ErrorPage({
     <StatusScreen
       tone="danger"
       illustration={<ErrorIllustration />}
-      code={t("code")}
-      title={t("title")}
-      body={t("body")}
+      code={copy.error.code}
+      title={copy.error.title}
+      body={copy.error.body}
       digest={error.digest}
-      actions={<Button onClick={reset}>{t("retry")}</Button>}
+      actions={<Button onClick={reset}>{copy.error.retry}</Button>}
     />
   )
 }

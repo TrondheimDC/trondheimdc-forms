@@ -2,7 +2,6 @@
 
 import { useTheme } from "next-themes"
 import * as React from "react"
-import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -10,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { copy } from "@/copy"
 
 function SunIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -83,7 +83,6 @@ function MonitorIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  const { t } = useTranslation("common", { keyPrefix: "menu" })
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
@@ -93,7 +92,7 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <Button variant="ghost" size="icon" className="h-9 w-9">
-        <span className="sr-only">{t("themeLabel")}</span>
+        <span className="sr-only">{copy.menu.themeLabel}</span>
       </Button>
     )
   }
@@ -108,7 +107,7 @@ export function ThemeToggle() {
         >
           <SunIcon className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <MoonIcon className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">{t("themeLabel")}</span>
+          <span className="sr-only">{copy.menu.themeLabel}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px]">
@@ -118,7 +117,7 @@ export function ThemeToggle() {
         >
           <span className="flex items-center gap-2">
             <SunIcon />
-            {t("themeLight")}
+            {copy.menu.themeLight}
           </span>
           {theme === "light" && <span className="text-primary">•</span>}
         </DropdownMenuItem>
@@ -128,7 +127,7 @@ export function ThemeToggle() {
         >
           <span className="flex items-center gap-2">
             <MoonIcon />
-            {t("themeDark")}
+            {copy.menu.themeDark}
           </span>
           {theme === "dark" && <span className="text-primary">•</span>}
         </DropdownMenuItem>
@@ -138,7 +137,7 @@ export function ThemeToggle() {
         >
           <span className="flex items-center gap-2">
             <MonitorIcon />
-            {t("themeSystem")}
+            {copy.menu.themeSystem}
           </span>
           {theme === "system" && <span className="text-primary">•</span>}
         </DropdownMenuItem>

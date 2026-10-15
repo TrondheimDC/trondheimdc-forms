@@ -7,9 +7,6 @@ export type ConfigForm = {
   title: string
   // The link preview's text, if the site's own doesn't fit.
   description?: string
-  // The language the form is written in, for the page around it. The site
-  // starts in Norwegian; "en" starts this page in English instead.
-  lang?: "no" | "en"
   // One answer per person, kept in this browser. Nextcloud takes any number
   // through a public link and can't be told otherwise, so this is a guard
   // against sending twice by accident, not a hard limit.

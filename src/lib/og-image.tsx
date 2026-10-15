@@ -8,7 +8,8 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { ImageResponse } from "next/og"
-import { no, OG_IMAGE } from "@/lib/metadata"
+import { copy } from "@/copy"
+import { OG_IMAGE } from "@/lib/metadata"
 
 const size = { width: OG_IMAGE.width, height: OG_IMAGE.height }
 const PADDING = { x: 80, y: 72 }
@@ -81,7 +82,7 @@ export const renderOgImage = async ({
   path?: string
 } = {}) => {
   const site = title === undefined
-  const text = site ? no.meta.description : description
+  const text = site ? copy.meta.description : description
   // The wordmark makes room for a form's title.
   const mark = site ? 1 : 0.65
 
@@ -142,7 +143,7 @@ export const renderOgImage = async ({
               marginBottom: text ? 20 : 0,
             }}
           >
-            {title ?? "Skjemaer"}
+            {title ?? "Forms"}
           </div>
           {text && (
             <div style={{ fontSize: 32, lineHeight: 1.4, maxWidth: 620 }}>

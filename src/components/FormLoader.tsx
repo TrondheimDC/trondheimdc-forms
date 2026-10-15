@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { copy } from "@/copy"
 import { LOGIN_ENABLED, NEXTCLOUD_URL } from "@/lib/config"
 import { type Loaded, loadForm } from "@/lib/load"
 import { startLogin } from "@/lib/session"
@@ -19,29 +19,19 @@ import { StatusScreen } from "./StatusScreen"
 
 // Fetches the form from Nextcloud in the browser, so the page is always the
 // form as it is right now. `shareHash` comes from forms.config.ts for the
-// named pages, or from the URL for /s/{hash}. So does `lang`, for a form
-// written in English: the page is prerendered in Norwegian like every other,
-// then switches as it starts, before the form has loaded. EN/NO in the
-// header still switch it back. `oneAnswer` holds the form to one answer
-// per person in this browser, where Nextcloud would take more.
+// named pages, or from the URL for /s/{hash}. `oneAnswer` holds the form to
+// one answer per person in this browser, where Nextcloud would take more.
 export const FormLoader = ({
   shareHash,
-  lang,
   oneAnswer,
 }: {
   shareHash?: string
-  lang?: "no" | "en"
   oneAnswer?: boolean
 }) => {
-  const { t, i18n } = useTranslation("common", { keyPrefix: "load" })
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [hash, setHash] = useState("")
   // /auth/callback sends people back with ?login=failed when it didn't take.
   const [loginFailed, setLoginFailed] = useState(false)
-
-  useEffect(() => {
-    if (lang && i18n.language !== lang) void i18n.changeLanguage(lang)
-  }, [lang, i18n])
 
   useEffect(() => {
     // /s/{hash}: one prerendered page for every hash, nginx maps them all to it.
@@ -62,7 +52,7 @@ export const FormLoader = ({
     }
   }, [shareHash])
 
-  if (!loaded) return <FormsLoading label={t("loading")} />
+  if (!loaded) return <FormsLoading label={copy.load.loading} />
 
   switch (loaded.kind) {
     case "form":
@@ -77,25 +67,25 @@ export const FormLoader = ({
       return (
         <StatusScreen
           illustration={<LoginIllustration />}
-          title={t("loginTitle")}
+          title={copy.load.loginTitle}
           body={
             <>
-              <p>{t("loginBody")}</p>
+              <p>{copy.load.loginBody}</p>
               {loginFailed && (
                 <p className="mt-3 font-semibold text-danger" role="alert">
-                  {t("loginFailed")}
+                  {copy.load.loginFailed}
                 </p>
               )}
             </>
           }
           actions={
             LOGIN_ENABLED ? (
-              <Button onClick={startLogin}>{t("loginButton")}</Button>
+              <Button onClick={startLogin}>{copy.load.loginButton}</Button>
             ) : (
               // Logging in here is parked: answer it in Nextcloud instead.
               <Button asChild>
                 <a href={`${NEXTCLOUD_URL}/apps/forms/${hash}`}>
-                  {t("openInNextcloud")}
+                  {copy.load.openInNextcloud}
                 </a>
               </Button>
             )
@@ -107,16 +97,16 @@ export const FormLoader = ({
         <StatusScreen
           tone="danger"
           illustration={<ForbiddenIllustration />}
-          title={t("forbiddenTitle")}
-          body={t("forbiddenBody")}
+          title={copy.load.forbiddenTitle}
+          body={copy.load.forbiddenBody}
         />
       )
     case "expired":
       return (
         <StatusScreen
           illustration={<ClosedIllustration />}
-          title={t("expiredTitle")}
-          body={t("expiredBody")}
+          title={copy.load.expiredTitle}
+          body={copy.load.expiredBody}
         />
       )
     case "notfound":
@@ -124,8 +114,8 @@ export const FormLoader = ({
         <StatusScreen
           illustration={<NotFoundIllustration />}
           code="404"
-          title={t("notfoundTitle")}
-          body={t("notfoundBody")}
+          title={copy.load.notfoundTitle}
+          body={copy.load.notfoundBody}
         />
       )
     case "failed":
@@ -133,11 +123,11 @@ export const FormLoader = ({
         <StatusScreen
           tone="danger"
           illustration={<ErrorIllustration />}
-          title={t("failedTitle")}
-          body={t("failedBody")}
+          title={copy.load.failedTitle}
+          body={copy.load.failedBody}
           actions={
             <Button onClick={() => window.location.reload()}>
-              {t("retry")}
+              {copy.load.retry}
             </Button>
           }
         />

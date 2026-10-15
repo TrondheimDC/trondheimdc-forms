@@ -2,8 +2,8 @@
 
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { copy } from "@/copy"
 import {
   type Draft,
   emptyDraft,
@@ -61,7 +61,6 @@ const firstControl = (question: Element | null) =>
   )
 
 export const FeedbackForm = ({ form }: { form: PublicForm }) => {
-  const { t, i18n } = useTranslation("common", { keyPrefix: "form" })
   const { user } = useSession()
   const [restored] = useState(() => readDraft(form))
   const [draft, setDraft] = useState<Draft>(() => restored ?? emptyDraft())
@@ -158,8 +157,8 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
     } catch (error) {
       const message =
         error instanceof SubmitError && error.message
-          ? t("errorServer", { message: error.message })
-          : t("errorGeneric")
+          ? copy.form.errorServer({ message: error.message })
+          : copy.form.errorGeneric
       setStatus({ kind: "failed", message })
     }
   }
@@ -213,9 +212,11 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
         illustration={<DoneIllustration />}
         celebrate
         kicker={form.title}
-        title={t("thanksTitle")}
+        title={copy.form.thanksTitle}
         body={
-          <Markdown>{form.submissionMessage || t("thanksDefault")}</Markdown>
+          <Markdown>
+            {form.submissionMessage || copy.form.thanksDefault}
+          </Markdown>
         }
         actions={
           form.submitMultiple && (
@@ -228,7 +229,7 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
                 setStatus({ kind: "filling" })
               }}
             >
-              {t("again")}
+              {copy.form.again}
             </Button>
           )
         }
@@ -241,8 +242,8 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
       <StatusScreen
         illustration={<ClosedIllustration />}
         kicker={form.title}
-        title={t("closedTitle")}
-        body={t("closedBody")}
+        title={copy.form.closedTitle}
+        body={copy.form.closedBody}
       />
     )
   }
@@ -252,8 +253,8 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
       <StatusScreen
         illustration={<DoneIllustration />}
         kicker={form.title}
-        title={t("alreadyTitle")}
-        body={t("alreadyBody")}
+        title={copy.form.alreadyTitle}
+        body={copy.form.alreadyBody}
       />
     )
   }
@@ -263,11 +264,11 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
       <StatusScreen
         illustration={<ElsewhereIllustration />}
         kicker={form.title}
-        title={t("unsupportedTitle")}
-        body={t("unsupportedBody")}
+        title={copy.form.unsupportedTitle}
+        body={copy.form.unsupportedBody}
         actions={
           <Button asChild>
-            <a href={form.nextcloudUrl}>{t("openInNextcloud")}</a>
+            <a href={form.nextcloudUrl}>{copy.form.openInNextcloud}</a>
           </Button>
         }
       />
@@ -277,10 +278,10 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
   // Only when the form says to show it: a closing date can be set without.
   const expires =
     form.expires > 0 && form.showExpiration
-      ? new Date(form.expires * 1000).toLocaleString(
-          i18n.language === "en" ? "en-GB" : "nb-NO",
-          { dateStyle: "long", timeStyle: "short" },
-        )
+      ? new Date(form.expires * 1000).toLocaleString("en-GB", {
+          dateStyle: "long",
+          timeStyle: "short",
+        })
       : null
 
   return (
@@ -300,15 +301,17 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
         style={{ "--i": 0 } as React.CSSProperties}
       >
         {form.sample && (
-          <p className="font-semibold text-accent">{t("sample")}</p>
+          <p className="font-semibold text-accent">{copy.form.sample}</p>
         )}
         {form.isAnonymous ? (
-          <p>{t("anonymous")}</p>
+          <p>{copy.form.anonymous}</p>
         ) : (
-          user && <p>{t("answeringAs", { name: user.displayName })}</p>
+          user && <p>{copy.form.answeringAs({ name: user.displayName })}</p>
         )}
-        {expires && <p>{t("expires", { date: expires })}</p>}
-        {form.questions.some((q) => q.isRequired) && <p>{t("requiredNote")}</p>}
+        {expires && <p>{copy.form.expires({ date: expires })}</p>}
+        {form.questions.some((q) => q.isRequired) && (
+          <p>{copy.form.requiredNote}</p>
+        )}
       </div>
 
       <AnimatePresence initial={false}>
@@ -322,7 +325,7 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
             className="overflow-hidden"
           >
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-primary/40 bg-primary/10 px-5 py-3 text-sm">
-              <p>{t("draftRestored")}</p>
+              <p>{copy.form.draftRestored}</p>
               <Button
                 type="button"
                 variant="link"
@@ -334,7 +337,7 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
                   setShowRestored(false)
                 }}
               >
-                {t("clearDraft")}
+                {copy.form.clearDraft}
               </Button>
             </div>
           </motion.div>
@@ -369,7 +372,7 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
         <div aria-live="polite" className="empty:hidden">
           {showProblems && problemCount > 0 && (
             <p className="font-semibold text-danger">
-              {t("fixErrors", { count: problemCount })}
+              {copy.form.fixErrors({ count: problemCount })}
             </p>
           )}
           {status.kind === "failed" && (
@@ -387,17 +390,17 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
             <span
               className={status.kind === "sending" ? "invisible" : undefined}
             >
-              {t("submit")}
+              {copy.form.submit}
             </span>
             {status.kind === "sending" && (
               <span className="absolute inset-0 flex items-center justify-center gap-3">
                 <span className="submit-spinner" aria-hidden="true" />
-                {t("submitting")}
+                {copy.form.submitting}
               </span>
             )}
           </Button>
           <p className="font-mono text-xs tabular-nums text-muted-foreground">
-            {t("progress", { answered, total: form.questions.length })}
+            {copy.form.progress({ answered, total: form.questions.length })}
           </p>
         </div>
       </div>
@@ -407,15 +410,14 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
 
 // A thin bar under the header that fills as questions are answered.
 const Progress = ({ answered, total }: { answered: number; total: number }) => {
-  const { t } = useTranslation("common", { keyPrefix: "form" })
   return (
     <div
       role="progressbar"
-      aria-label={t("progressLabel")}
+      aria-label={copy.form.progressLabel}
       aria-valuemin={0}
       aria-valuemax={total}
       aria-valuenow={answered}
-      aria-valuetext={t("progress", { answered, total })}
+      aria-valuetext={copy.form.progress({ answered, total })}
       className="fixed inset-x-0 top-16 z-40 h-[3px] bg-border/60"
     >
       <div

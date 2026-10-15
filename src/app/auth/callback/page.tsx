@@ -3,7 +3,7 @@ import { LOGIN_ENABLED } from "@/lib/config"
 import { CallbackContent } from "./content"
 
 // Nextcloud's OAuth client sends people back here (its redirection URI).
-export const metadata = { title: "Logger inn", robots: { index: false } }
+export const metadata = { title: "Logging in", robots: { index: false } }
 
 export default function Callback() {
   // Logging in is parked (src/lib/config.ts).

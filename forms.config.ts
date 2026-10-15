@@ -9,16 +9,15 @@ export default {
   oauthClientId: "REPLACE_WITH_OAUTH_CLIENT_ID",
   forms: [
     {
-      slug: "eksempel",
+      slug: "example",
       shareHash: "sample",
-      title: "Eksempel: tilbakemelding på TDC 2026",
+      title: "Example: feedback on TDC 2026",
     },
     // The survey after the conference: one answer each.
     {
       slug: "tdc-2026",
       shareHash: "TjRzjFz94LWLDJgmGRK4oW6E",
       title: "TDC 2026 Feedback",
-      lang: "en",
       oneAnswer: true,
     },
     // During the day, on posters: as many answers as people like.
@@ -28,7 +27,6 @@ export default {
       title: "TDC 2026: Tell us now",
       description:
         "Something great or something we should fix? Tell us any time during the day, as often as you like.",
-      lang: "en",
     },
   ],
 } satisfies FormsConfig

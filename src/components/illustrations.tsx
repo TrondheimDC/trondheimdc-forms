@@ -128,7 +128,7 @@ const Sheet = ({
 
 /** Not found: a 404 stamped across the form. */
 export const NotFoundIllustration = ({ className }: ArtProps) => (
-  <Scene label="Et skjema stemplet 404" className={className}>
+  <Scene label="A form stamped 404" className={className}>
     <Sheet />
     {/* The tilt sits on its own group: the entrance animation is a CSS
         transform, which would replace an SVG transform on the same element. */}
@@ -166,7 +166,7 @@ export const NotFoundIllustration = ({ className }: ArtProps) => (
           letterSpacing="1.6"
           className="font-mono"
         >
-          IKKE FUNNET
+          NOT FOUND
         </text>
       </g>
     </g>
@@ -175,7 +175,7 @@ export const NotFoundIllustration = ({ className }: ArtProps) => (
 
 /** Closed or expired: a padlock on the form. */
 export const ClosedIllustration = ({ className }: ArtProps) => (
-  <Scene label="Et skjema med hengelås" className={className}>
+  <Scene label="A form with a padlock" className={className}>
     <Sheet checked={1} />
     <g className="status-stamp">
       <path
@@ -194,7 +194,7 @@ export const ClosedIllustration = ({ className }: ArtProps) => (
 
 /** Log in first: the form with a person badge. */
 export const LoginIllustration = ({ className }: ArtProps) => (
-  <Scene label="Et skjema med et personmerke" className={className}>
+  <Scene label="A form with a name badge" className={className}>
     <Sheet />
     <g className="status-stamp">
       <circle cx="220" cy="168" r="32" fill={brand} />
@@ -206,7 +206,7 @@ export const LoginIllustration = ({ className }: ArtProps) => (
 
 /** No access: the person badge, crossed out. */
 export const ForbiddenIllustration = ({ className }: ArtProps) => (
-  <Scene label="Et skjema med et overstrøket personmerke" className={className}>
+  <Scene label="A form with a crossed-out name badge" className={className}>
     <Sheet />
     <g className="status-stamp">
       <circle cx="220" cy="168" r="32" fill={danger} />
@@ -233,7 +233,7 @@ export const DoneIllustration = ({ className }: ArtProps) => {
     { x: 262, y: 214, r: 4, c: "var(--color-fg-brand-2)", d: 0.8 },
   ]
   return (
-    <Scene label="Et ferdig utfylt skjema med hake" className={className}>
+    <Scene label="A filled-in form with a tick" className={className}>
       <Sheet checked={3} />
       {confetti.map((p) => (
         <circle
@@ -263,7 +263,7 @@ export const DoneIllustration = ({ className }: ArtProps) => {
 
 /** Has to be filled in on Nextcloud: an arrow out of the form. */
 export const ElsewhereIllustration = ({ className }: ArtProps) => (
-  <Scene label="Et skjema med en pil ut" className={className}>
+  <Scene label="A form with an arrow pointing out" className={className}>
     <Sheet />
     <g className="status-stamp">
       <circle cx="220" cy="168" r="32" fill={brand} />
@@ -281,7 +281,7 @@ export const ElsewhereIllustration = ({ className }: ArtProps) => (
 
 /** Something broke: the sheet knocked askew, a blinking warning. */
 export const ErrorIllustration = ({ className }: ArtProps) => (
-  <Scene label="Et skjema på skeive med et varsel" className={className}>
+  <Scene label="A crooked form with a warning" className={className}>
     <Sheet tilt={-8} />
     <path
       d="M206 82L246 60"

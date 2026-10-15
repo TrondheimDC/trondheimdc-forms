@@ -1,8 +1,8 @@
 {
   "id": 1,
-  "title": "Tilbakemelding på TDC 2026",
-  "description": "Takk for at du var med! Det tar to minutter, og vi leser alt.\n\nSvarene er **anonyme**.",
-  "submissionMessage": "Takk! Vi sees neste år.",
+  "title": "Feedback on TDC 2026",
+  "description": "Thanks for coming! It takes two minutes, and we read everything.\n\nAnswers are **anonymous**.",
+  "submissionMessage": "Thanks! See you next year.",
   "expires": 0,
   "state": 0,
   "submitMultiple": false,
@@ -11,27 +11,27 @@
     {
       "id": 101,
       "type": "linearscale",
-      "text": "Hvor fornøyd var du med konferansen totalt?",
+      "text": "How happy were you with the conference overall?",
       "description": "",
       "isRequired": true,
       "options": [],
       "extraSettings": {
         "optionsLowest": 1,
         "optionsHighest": 5,
-        "optionsLabelLowest": "Lite fornøyd",
-        "optionsLabelHighest": "Veldig fornøyd"
+        "optionsLabelLowest": "Not happy",
+        "optionsLabelHighest": "Very happy"
       }
     },
     {
       "id": 102,
       "type": "multiple",
-      "text": "Hvilke spor fulgte du?",
-      "description": "Velg alle som passer.",
+      "text": "Which tracks did you follow?",
+      "description": "Choose all that apply.",
       "isRequired": false,
       "options": [
         {
           "id": 1,
-          "text": "Arkitektur"
+          "text": "Architecture"
         },
         {
           "id": 2,
@@ -39,7 +39,7 @@
         },
         {
           "id": 3,
-          "text": "Data og AI"
+          "text": "Data and AI"
         },
         {
           "id": 4,
@@ -53,21 +53,21 @@
     {
       "id": 103,
       "type": "multiple_unique",
-      "text": "Kommer du tilbake neste år?",
+      "text": "Will you come back next year?",
       "description": "",
       "isRequired": true,
       "options": [
         {
           "id": 5,
-          "text": "Ja"
+          "text": "Yes"
         },
         {
           "id": 6,
-          "text": "Kanskje"
+          "text": "Maybe"
         },
         {
           "id": 7,
-          "text": "Nei"
+          "text": "No"
         }
       ],
       "extraSettings": {}
@@ -75,25 +75,25 @@
     {
       "id": 104,
       "type": "dropdown",
-      "text": "Hvordan hørte du om TDC?",
+      "text": "How did you hear about TDC?",
       "description": "",
       "isRequired": false,
       "options": [
         {
           "id": 8,
-          "text": "Kollega"
+          "text": "A colleague"
         },
         {
           "id": 9,
-          "text": "Faggruppe / meetup"
+          "text": "A user group / meetup"
         },
         {
           "id": 10,
-          "text": "Sosiale medier"
+          "text": "Social media"
         },
         {
           "id": 11,
-          "text": "Annet"
+          "text": "Other"
         }
       ],
       "extraSettings": {}
@@ -101,25 +101,25 @@
     {
       "id": 105,
       "type": "ranking",
-      "text": "Ranger det som betyr mest for deg",
-      "description": "Flytt det viktigste øverst.",
+      "text": "Rank what matters most to you",
+      "description": "Move the most important to the top.",
       "isRequired": false,
       "options": [
         {
           "id": 12,
-          "text": "Foredragene"
+          "text": "The talks"
         },
         {
           "id": 13,
-          "text": "Maten"
+          "text": "The food"
         },
         {
           "id": 14,
-          "text": "Nettverk"
+          "text": "Networking"
         },
         {
           "id": 15,
-          "text": "Standene"
+          "text": "The stands"
         }
       ],
       "extraSettings": {}
@@ -127,7 +127,7 @@
     {
       "id": 106,
       "type": "long",
-      "text": "Hva var det beste med dagen?",
+      "text": "What was the best part of the day?",
       "description": "",
       "isRequired": false,
       "options": [],
@@ -136,7 +136,7 @@
     {
       "id": 107,
       "type": "short",
-      "text": "E-post, hvis du vil at vi tar kontakt",
+      "text": "Email, if you want us to get in touch",
       "description": "",
       "isRequired": false,
       "options": [],

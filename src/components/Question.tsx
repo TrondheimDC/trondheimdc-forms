@@ -2,9 +2,9 @@
 
 import { AnimatePresence, motion, Reorder, useDragControls } from "motion/react"
 import { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Check, Input, Select, Textarea } from "@/components/ui/field"
+import { copy } from "@/copy"
 import type { Draft, Problem } from "@/lib/answers"
 import type { Option, Question as Q } from "@/lib/forms"
 import { cn } from "@/lib/utils"
@@ -27,14 +27,13 @@ export type QuestionProps = {
 
 export const Question = (props: QuestionProps) => {
   const { question: q, index, answered, problem, onLeave } = props
-  const { t } = useTranslation("common")
   const ids = {
     legend: `q-${q.id}-label`,
     description: `q-${q.id}-description`,
     hint: `q-${q.id}-hint`,
     problem: `q-${q.id}-problem`,
   }
-  const hint = useHint(q)
+  const hint = hintFor(q)
   const describedBy =
     [q.description && ids.description, hint && ids.hint, problem && ids.problem]
       .filter(Boolean)
@@ -77,7 +76,7 @@ export const Question = (props: QuestionProps) => {
             </span>
           )}
           {q.isRequired && (
-            <span className="sr-only"> ({t("form.required")})</span>
+            <span className="sr-only"> ({copy.form.required})</span>
           )}
         </span>
       </legend>
@@ -122,10 +121,7 @@ export const Question = (props: QuestionProps) => {
                   <circle cx="12" cy="12" r="9.5" />
                   <path d="M12 7.5v5.5M12 16.5v.01" />
                 </svg>
-                {t(
-                  `problem.${problem.kind}`,
-                  "count" in problem ? { count: problem.count } : {},
-                )}
+                {copy.problem(problem)}
               </p>
             </motion.div>
           )}
@@ -137,17 +133,16 @@ export const Question = (props: QuestionProps) => {
 
 // What the question asks for, said up front rather than only once it's
 // wrong: how many to pick, and how to rank.
-const useHint = (q: Q) => {
-  const { t } = useTranslation("common", { keyPrefix: "form" })
-  if (q.type === "ranking") return t("rankHint")
+const hintFor = (q: Q) => {
+  if (q.type === "ranking") return copy.form.rankHint
   if (q.type !== "multiple") return null
   const { optionsLimitMin: min, optionsLimitMax: max } = q.extraSettings
   if (min && max)
     return min === max
-      ? t("chooseExactly", { count: min })
-      : t("chooseBetween", { min, max })
-  if (min) return t("chooseAtLeast", { count: min })
-  if (max) return t("chooseAtMost", { count: max })
+      ? copy.form.chooseExactly({ count: min })
+      : copy.form.chooseBetween({ min, max })
+  if (min) return copy.form.chooseAtLeast({ count: min })
+  if (max) return copy.form.chooseAtMost({ count: max })
   return null
 }
 
@@ -165,7 +160,6 @@ const Control = (props: ControlProps) => {
     labelledBy,
     describedBy,
   } = props
-  const { t } = useTranslation("common", { keyPrefix: "form" })
   const values = draft.values[q.id] ?? []
   const s = q.extraSettings
   const aria = {
@@ -245,12 +239,12 @@ const Control = (props: ControlProps) => {
         <div className="flex flex-wrap gap-4">
           {[
             {
-              label: t("from"),
+              label: copy.form.from,
               value: from,
               set: (v: string) => setValues([v, to]),
             },
             {
-              label: t("to"),
+              label: copy.form.to,
               value: to,
               set: (v: string) => setValues([from, v]),
             },
@@ -330,7 +324,6 @@ const Dropdown = ({
   labelledBy,
   describedBy,
 }: ControlProps) => {
-  const { t } = useTranslation("common", { keyPrefix: "form" })
   const options = useShuffled(q.options, q.extraSettings.shuffleOptions)
   const value = draft.values[q.id]?.[0] ?? ""
 
@@ -343,7 +336,7 @@ const Dropdown = ({
       value={value}
       onChange={(e) => setValues(e.target.value ? [e.target.value] : [])}
     >
-      <option value="">{t("choose")}</option>
+      <option value="">{copy.form.choose}</option>
       {options.map((o) => (
         <option key={o.id} value={String(o.id)} className="text-foreground">
           {o.text}
@@ -367,7 +360,6 @@ const Choices = ({
   setOtherChecked,
   describedBy,
 }: ControlProps) => {
-  const { t } = useTranslation("common", { keyPrefix: "form" })
   const single = q.type === "multiple_unique"
   const values = draft.values[q.id] ?? []
   const options = useShuffled(q.options, q.extraSettings.shuffleOptions)
@@ -413,14 +405,14 @@ const Choices = ({
                 if (e.target.checked) otherInput.current?.focus()
               }}
             />
-            <span>{t("other")}</span>
+            <span>{copy.form.other}</span>
           </label>
           <Input
             ref={otherInput}
             className="h-9 min-w-48 flex-1"
-            aria-label={t("other")}
+            aria-label={copy.form.other}
             aria-describedby={describedBy}
-            placeholder={t("otherPlaceholder")}
+            placeholder={copy.form.otherPlaceholder}
             enterKeyHint="next"
             value={draft.other[q.id] ?? ""}
             onChange={(e) => {
@@ -440,7 +432,7 @@ const Choices = ({
             chosen > max ? "text-danger" : "text-muted-foreground",
           )}
         >
-          {t("chosenOf", { count: chosen, max })}
+          {copy.form.chosenOf({ count: chosen, max })}
         </p>
       )}
     </div>
@@ -512,7 +504,6 @@ const Scale = ({ question: q, draft, problem, setValues }: ControlProps) => {
 // handle, or use the arrows (and the keyboard); either way the rows slide
 // into place.
 const Ranking = ({ question: q, draft, setValues }: ControlProps) => {
-  const { t } = useTranslation("common", { keyPrefix: "form" })
   const shuffled = useShuffled(q.options, q.extraSettings.shuffleOptions)
   const chosen = draft.values[q.id]
   const byId = new Map(q.options.map((o) => [String(o.id), o]))
@@ -532,7 +523,9 @@ const Ranking = ({ question: q, draft, setValues }: ControlProps) => {
     setValues(next)
     const item = order[index]
     if (item)
-      setAnnouncement(t("moved", { item: item.text, position: target + 1 }))
+      setAnnouncement(
+        copy.form.moved({ item: item.text, position: target + 1 }),
+      )
   }
 
   return (
@@ -572,7 +565,7 @@ const Ranking = ({ question: q, draft, setValues }: ControlProps) => {
           >
             <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
-          {t("orderChosen")}
+          {copy.form.orderChosen}
         </p>
       ) : (
         <Button
@@ -581,7 +574,7 @@ const Ranking = ({ question: q, draft, setValues }: ControlProps) => {
           size="sm"
           onClick={() => setValues(ids)}
         >
-          {t("keepOrder")}
+          {copy.form.keepOrder}
         </Button>
       )}
     </div>
@@ -601,7 +594,6 @@ const RankItem = ({
   count: number
   onMove: (by: -1 | 1) => void
 }) => {
-  const { t } = useTranslation("common", { keyPrefix: "form" })
   const controls = useDragControls()
   const up = useRef<HTMLButtonElement>(null)
   const down = useRef<HTMLButtonElement>(null)
@@ -650,7 +642,7 @@ const RankItem = ({
           // disabled, so hand focus to its partner.
           if (position === 1) down.current?.focus()
         }}
-        aria-label={t("moveUp", { item: text })}
+        aria-label={copy.form.moveUp({ item: text })}
       >
         <Arrow up />
       </Button>
@@ -664,7 +656,7 @@ const RankItem = ({
           onMove(1)
           if (position === count - 2) up.current?.focus()
         }}
-        aria-label={t("moveDown", { item: text })}
+        aria-label={copy.form.moveDown({ item: text })}
       >
         <Arrow />
       </Button>

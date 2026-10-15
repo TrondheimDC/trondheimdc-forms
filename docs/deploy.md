@@ -81,7 +81,7 @@ Push `main`, or run **Actions → CD - Build & Deploy** by hand (`workflow_dispa
 ```bash
 curl -sI https://forms.trondheimdc.no | head -1                                  # 404 (on purpose)
 curl -sI https://forms.trondheimdc.no/og.png | grep -i ^content-type             # image/png
-curl -sI https://forms.trondheimdc.no/eksempel/og.png | grep -i ^content-type    # image/png
+curl -sI https://forms.trondheimdc.no/example/og.png | grep -i ^content-type    # image/png
 curl -sI https://forms.trondheimdc.no/s/<hash> | head -1                         # 200 (s.html)
 curl -sI https://forms.trondheimdc.no/finnes-ikke | head -1                      # 404
 curl -s -H 'OCS-APIRequest: true' https://forms.trondheimdc.no/apps/forms/s/<public hash> | grep -c initial-state-forms-form   # 1

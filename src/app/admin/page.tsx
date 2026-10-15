@@ -3,7 +3,7 @@ import { LOGIN_ENABLED } from "@/lib/config"
 import { AdminContent } from "./content"
 
 export const metadata = {
-  title: "Dine skjemaer",
+  title: "Your forms",
   robots: { index: false },
 }
 

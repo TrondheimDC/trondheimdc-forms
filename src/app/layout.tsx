@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from "next"
-import { no, OG_IMAGE, SITE_URL } from "@/lib/metadata"
+import { copy } from "@/copy"
+import { OG_IMAGE, SITE_URL } from "@/lib/metadata"
 import { Providers } from "./providers"
 import "./globals.css"
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "TrondheimDC | Skjemaer",
+    default: "TrondheimDC | Forms",
     template: "TrondheimDC | %s",
   },
-  description: no.meta.description,
+  description: copy.meta.description,
   // Pages replace this with pageMetadata(); it's what the 404 page gets.
   openGraph: { siteName: "TrondheimDC", images: [OG_IMAGE] },
   twitter: { card: "summary_large_image" },
@@ -31,9 +32,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    // Prerendered in Norwegian; src/i18n.ts keeps lang in sync after a switch.
     // suppressHydrationWarning: next-themes sets data-theme before React loads.
-    <html lang="no" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Body copy and headings, the two faces above the fold everywhere.
             See forening's layout for why only these two. */}

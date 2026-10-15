@@ -18,7 +18,7 @@ const taken = new Set([
   "icon.svg",
   "apple-icon.png",
   "manifest.webmanifest",
-  // Copied as they are: fonts, img, locales, robots.txt, icons.
+  // Copied as they are: fonts, img, robots.txt, icons.
   ...readdirSync(join(root, "public")),
   // Forwarded to Nextcloud by nginx, now or with the login on.
   "apps",

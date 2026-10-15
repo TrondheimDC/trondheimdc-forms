@@ -6,8 +6,7 @@ import { StatusScreen } from "@/components/StatusScreen"
 import { Button } from "@/components/ui/button"
 import "./globals.css"
 
-// The root layout itself crashed: no providers, no i18n, so Norwegian only,
-// and reload instead of reset().
+// The root layout itself crashed: no providers, so reload instead of reset().
 export default function GlobalError({
   error,
 }: {
@@ -18,20 +17,18 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <html lang="no">
+    <html lang="en">
       <body>
-        <title>Noe gikk galt · TrondheimDC</title>
+        <title>Something went wrong · TrondheimDC</title>
         <StatusScreen
           tone="danger"
           illustration={<ErrorIllustration />}
-          code="Feil"
-          title="Noe gikk galt"
-          body="Siden fikk ikke startet. Last den inn på nytt."
+          code="Error"
+          title="Something went wrong"
+          body="The page couldn't start. Reload it."
           digest={error.digest}
           actions={
-            <Button onClick={() => window.location.reload()}>
-              Last inn på nytt
-            </Button>
+            <Button onClick={() => window.location.reload()}>Reload</Button>
           }
         />
       </body>

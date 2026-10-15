@@ -32,13 +32,12 @@ This repo is public. Nothing secret goes in it, not even briefly: git history ke
 - **Validation** mirrors `SubmissionService::validateSubmission()` in nextcloud/forms (`src/lib/answers.ts`), so Nextcloud only rejects what the browser couldn't know. Its message is shown as-is when it does.
 - **Filling in.** Problems show once a question is left (unanswered required ones only after a try at submitting) and clear as soon as they're fixed. Submitting with problems focuses the first and shakes the cards. Enter in a one-line field goes to the next question. Nextcloud takes any number of answers through a public link (it shows "multiple responses" locked on, but stores false; `fromNextcloud()` reads it the way Forms does), so a named form with `oneAnswer: true` is held to one per browser, in `localStorage`. Answers being written are kept in `sessionStorage` (`tdc-forms:draft:{id}`), not `localStorage`, so the next person on a shared machine doesn't find them.
 - **Motion.** CSS for most of it (`.form-*`, `.choice-*`, `.confetti` in `globals.css`); [`motion`](https://motion.dev) only for the ranking's drag and heights that animate to `auto`. Both follow `prefers-reduced-motion`.
-- **i18n.** Every page is prerendered in Norwegian. English is a client-side switch (`src/i18n.ts`, `react-i18next`). The forms themselves are in whatever language they were written in, in Nextcloud. A named form with `lang: "en"` in `forms.config.ts` switches its page to English as it starts (`FormLoader`), and its link preview says `en_GB`.
+- **English only.** The site's own text is English, in `src/copy.ts`. Nextcloud Forms has no translations (nextcloud/forms#269): a form is in whatever language it was written in, so a second language would only translate the buttons around it.
 - **Icons.** `src/app/icon.svg` is the source; `node scripts/build-icons.mjs` renders the favicon, apple icon and manifest icons. `src/lib/og-image.tsx` draws the link previews at build time: the site's at `/og.png`, and one per named form at `/{slug}/og.png` with its title (and `description`, if it has one, from `forms.config.ts`). `/s/{hash}` gets the site's: link previews don't run JavaScript, so its title is never known.
 
 ## Copy
 
-- Copy lives in `public/locales/{no,en}/common.json`. Change both files together.
-- Norwegian bokmål first, English second. Write it in TDC's voice, short and plain. No em dashes.
+- Copy lives in `src/copy.ts`, in English. Write it in TDC's voice, short and plain. No em dashes.
 
 ## Design
 
