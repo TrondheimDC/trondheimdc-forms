@@ -1,0 +1,11 @@
+{
+  "nextcloudUrl": "https://nextcloud.example.org",
+  "oauthClientId": "REPLACE_WITH_OAUTH_CLIENT_ID",
+  "forms": [
+    {
+      "slug": "eksempel",
+      "shareHash": "sample",
+      "title": "Eksempel: tilbakemelding på TDC 2026"
+    }
+  ]
+}

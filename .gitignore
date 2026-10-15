@@ -1,0 +1,21 @@
+# This repo is public. Secrets live on the server (/etc/nginx/forms-oauth-client.conf)
+# or in .env.local for development, never in git.
+
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Local secrets and notes
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+forms-oauth-client.conf
+TODO.local.md
+
+# Test output
+/test-results/
+/playwright-report/

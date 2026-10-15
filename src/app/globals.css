@@ -1,0 +1,660 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+/* `data-theme` is only on <html> once next-themes' script has run. The token
+   blocks further down already cover the gap. Before that the theme comes
+   from `prefers-color-scheme`, so these variants have to cover it too, or a
+   `light:`/`dark:` utility silently does nothing on the first paint and for
+   anyone without JS. The second arm of each
+   variant mirrors the selector the `@media` token block uses verbatim. */
+@custom-variant dark {
+  &:is([data-theme="dark"] *) {
+    @slot;
+  }
+  @media not all and (prefers-color-scheme: light) {
+    &:is(:root:not([data-theme="dark"]):not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+@custom-variant light {
+  &:is([data-theme="light"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: light) {
+    &:is(:root:not([data-theme="dark"]):not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+/* =====================================================================
+   Fonts: self-hosted, ported from trondheimdc.no's design system.
+   ===================================================================== */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-sans-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-sans-latin-ext-600-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-sans-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/ibm-plex-sans-latin-ext-700-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/space-grotesk-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/space-grotesk-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/space-grotesk-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/space-grotesk-latin-ext-700-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/space-mono-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/space-mono-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/space-mono-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/space-mono-latin-ext-700-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Metric-matched Arial stand-ins, sitting right behind the real faces in the
+   stacks below. `font-display: swap` still swaps, but the fallback now occupies
+   exactly the same space, so the swap changes glyphs without reflowing the
+   text. Numbers are Next's own capsize values for these two families
+   (`calculateSizeAdjustValues`, next/dist/server/font-utils.js). */
+@font-face {
+  font-family: "IBM Plex Sans Fallback";
+  /* Liberation Sans is metric-identical to Arial and is what most Linux boxes
+     have instead; Helvetica covers the rest. */
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 101.17%;
+  ascent-override: 101.32%;
+  descent-override: 27.18%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Space Grotesk Fallback";
+  src: local("Arial"), local("Liberation Sans"), local("Helvetica");
+  size-adjust: 109.69%;
+  ascent-override: 89.71%;
+  descent-override: 26.62%;
+  line-gap-override: 0%;
+}
+
+/* =====================================================================
+   Design tokens: trondheimdc.no's, same names and values
+   (src/assets/css/00-settings/tokens.css + themes.css in that repo), which
+   are also the names checkin, regnskap and forening use. Two tiers: primitive ->
+   semantic, and components use semantic tokens only. Dark is the default;
+   light applies via [data-theme="light"] (next-themes) or via
+   prefers-color-scheme before JS has run. Additions copied from forening
+   are marked as such.
+   ===================================================================== */
+:root {
+  /* Primitives: neutrals */
+  --color-white-1: #fefefe;
+  --color-white-2: #f4f4f4;
+  --color-black: #0f0f0f;
+  --color-black-2: #363636;
+  --color-black-3: #292929;
+
+  /* Green */
+  --color-green-1: #9bf7a9;
+  --color-green-2: #81ef92;
+  --color-green-3: #67e47b;
+  --color-green-4: #142e18;
+
+  /* Purple */
+  --color-purple-1: #bf9cf7;
+  --color-purple-2: #7163e9;
+  --color-purple-3: #5241d8;
+  --color-purple-4: #20166a;
+
+  /* Red */
+  --color-red: #ff7e6c;
+  --color-red-2: #fe6650;
+  --color-red-3: #f1422a;
+  --color-red-4: #901a09;
+
+  /* Yellow */
+  --color-yellow-1: #ffe7a7;
+  --color-yellow-2: #ffd12e;
+  --color-yellow-3: #faa31c;
+  --color-yellow-4: #eb7821;
+
+  /* Pink */
+  --color-pink: #f0889c;
+  --color-pink-2: #e9718a;
+  --color-pink-3: #db5c76;
+
+  /* Blue */
+  --color-blue-1: #70a7f9;
+  --color-blue-2: #5d8dd3;
+  --color-blue-3: #4d79bb;
+
+  /* Primitives: type. The "Fallback" faces come from forening (see above). */
+  --font-family-sans: "IBM Plex Sans", "IBM Plex Sans Fallback", system-ui,
+    -apple-system, "Segoe UI", sans-serif;
+  --font-family-mono: "Space Mono", ui-monospace, "SFMono-Regular", Consolas,
+    "Liberation Mono", Menlo, monospace;
+  --font-family-display: "Space Grotesk", "Space Grotesk Fallback",
+    var(--font-family-sans);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Semantic, dark (default) */
+  color-scheme: dark;
+
+  --color-bg-base: var(--color-black);
+  --color-bg-surface: var(--color-black-2);
+  --color-bg-success: var(--color-green-1);
+  --color-bg-warning: var(--color-yellow-3);
+  --color-bg-danger: var(--color-red-3);
+
+  --color-fg-base: var(--color-white-1);
+  --color-fg-brand: var(--color-green-1);
+  --color-fg-brand-2: var(--color-purple-1);
+  --color-fg-brand-3: var(--color-yellow-1);
+  --color-fg-brand-4: var(--color-yellow-3);
+  --color-fg-accent: var(--color-yellow-2);
+  --color-fg-accent-2: var(--color-pink);
+  --color-fg-accent-3: var(--color-blue-1);
+  --color-fg-always-dark: var(--color-black-3);
+
+  /* trondheimdc.no's site extensions */
+  --color-fg-muted: color-mix(in srgb, var(--color-fg-base) 64%, var(--color-bg-base));
+  --color-border: color-mix(in srgb, var(--color-fg-base) 16%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--color-fg-base) 32%, transparent);
+  --color-overlay: color-mix(in srgb, var(--color-black) 72%, transparent);
+  --color-focus-ring: var(--color-fg-accent);
+  /* Forms only: error text. Dark keeps the light red; light mode needs
+     the darkest one, the others are under 4.5:1 on white. */
+  --color-fg-danger: var(--color-red);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.45);
+
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --color-bg-base: var(--color-white-1);
+  --color-bg-surface: var(--color-white-2);
+  --color-bg-success: var(--color-green-3);
+  --color-bg-warning: var(--color-yellow-1);
+  --color-bg-danger: var(--color-red);
+
+  --color-fg-base: var(--color-black-3);
+  /* Light-mode interactive/accent states use red; dark mode keeps green. */
+  --color-fg-brand: var(--color-red-3);
+  --color-fg-brand-2: var(--color-purple-3);
+  --color-fg-brand-3: var(--color-yellow-3);
+  --color-fg-brand-4: var(--color-yellow-2);
+  --color-fg-accent: var(--color-yellow-3);
+  --color-fg-accent-2: var(--color-pink-2);
+  --color-fg-accent-3: var(--color-blue-2);
+  --color-fg-always-dark: var(--color-black-3);
+
+  /* From forening: 70%, not 64%. Light mode's base is the darker of the two,
+     so the same mix lands at #767676, whose contrast against the page
+     background tops out at 4.28:1, under AA for body text no matter what is
+     behind it. 70% lands at #696969 and clears 4.5:1 with a little room. */
+  --color-fg-muted: color-mix(in srgb, var(--color-fg-base) 70%, var(--color-bg-base));
+  --color-border: color-mix(in srgb, var(--color-fg-base) 14%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--color-fg-base) 28%, transparent);
+  --color-overlay: color-mix(in srgb, var(--color-black) 55%, transparent);
+  --color-fg-danger: var(--color-red-4);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.14);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+    color-scheme: light;
+    --color-bg-base: var(--color-white-1);
+    --color-bg-surface: var(--color-white-2);
+    --color-bg-success: var(--color-green-3);
+    --color-bg-warning: var(--color-yellow-1);
+    --color-bg-danger: var(--color-red);
+
+    --color-fg-base: var(--color-black-3);
+    /* Light-mode interactive/accent states use red; dark mode keeps green. */
+    --color-fg-brand: var(--color-red-3);
+    --color-fg-brand-2: var(--color-purple-3);
+    --color-fg-brand-3: var(--color-yellow-3);
+    --color-fg-brand-4: var(--color-yellow-2);
+    --color-fg-accent: var(--color-yellow-3);
+    --color-fg-accent-2: var(--color-pink-2);
+    --color-fg-accent-3: var(--color-blue-2);
+    --color-fg-always-dark: var(--color-black-3);
+
+    /* From forening: 70%, not 64%. Light mode's base is the darker of the two,
+       so the same mix lands at #767676, whose contrast against the page
+       background tops out at 4.28:1, under AA for body text no matter what is
+       behind it. 70% lands at #696969 and clears 4.5:1 with a little room. */
+    --color-fg-muted: color-mix(in srgb, var(--color-fg-base) 70%, var(--color-bg-base));
+    --color-border: color-mix(in srgb, var(--color-fg-base) 14%, transparent);
+    --color-border-strong: color-mix(in srgb, var(--color-fg-base) 28%, transparent);
+    --color-overlay: color-mix(in srgb, var(--color-black) 55%, transparent);
+    --color-fg-danger: var(--color-red-4);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.14);
+  }
+}
+
+/* shadcn's names on top of the tokens above, for the Tailwind utilities.
+   --color-border, --color-border-strong and --color-overlay map onto
+   themselves: Tailwind also writes them into its theme layer, but the
+   unlayered declarations above win the cascade, so the utilities get the
+   themed value. */
+@theme inline {
+  --color-background: var(--color-bg-base);
+  --color-foreground: var(--color-fg-base);
+  --color-card: var(--color-bg-surface);
+  --color-card-foreground: var(--color-fg-base);
+  --color-popover: var(--color-bg-surface);
+  --color-popover-foreground: var(--color-fg-base);
+  --color-muted: var(--color-bg-surface);
+  --color-muted-foreground: var(--color-fg-muted);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-input: var(--color-border-strong);
+  --color-ring: var(--color-focus-ring);
+
+  --color-primary: var(--color-fg-brand);
+  --color-primary-foreground: var(--color-fg-always-dark);
+  --color-secondary: var(--color-fg-brand-2);
+  --color-secondary-foreground: var(--color-white-1);
+  --color-accent: var(--color-fg-accent);
+  --color-accent-foreground: var(--color-fg-always-dark);
+  --color-destructive: var(--color-bg-danger);
+  --color-destructive-foreground: var(--color-white-1);
+  --color-success: var(--color-bg-success);
+  --color-danger: var(--color-fg-danger);
+  --color-always-dark: var(--color-fg-always-dark);
+
+  /* Brand extras, for one-off accents outside the shadcn palette */
+  --color-brand-pink: var(--color-fg-accent-2);
+  --color-brand-blue: var(--color-fg-accent-3);
+  --color-overlay: var(--color-overlay);
+
+  --font-sans: var(--font-family-sans);
+  --font-display: var(--font-family-display);
+  --font-mono: var(--font-family-mono);
+
+  /* trondheimdc.no's radius scale */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    line-height: 1.75;
+  }
+  /* trondheimdc.no's heading scale (01-base/typography.css). A size class on
+     the element still wins, for the smaller in-page headings. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+  }
+  h1 {
+    font-size: clamp(1.875rem, 1.5rem + 1.2vw, 2.5rem); /* 30 -> 40 */
+    line-height: 1.2;
+  }
+  h2 {
+    font-size: 1.875rem; /* 30 */
+    line-height: 1.35;
+  }
+  h3 {
+    font-size: 1.5rem; /* 24 */
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  h4 {
+    font-size: 1.3125rem; /* 21 */
+    font-weight: 700;
+    line-height: 1.5;
+  }
+}
+
+@layer components {
+  /* trondheimdc.no's TDC wordmark (04-components/wordmark.css), rendered by
+     components/TdcWordmark.tsx. Green is the dark-theme brand colour; light
+     swaps to red because the pale green washes out on a light background. */
+  .tdc-wordmark {
+    --wordmark-size: 1.625rem; /* 26px, override per placement */
+    --wordmark-t: url("/img/logos/letters/T-green.svg");
+    --wordmark-d: url("/img/logos/letters/D-green-long.svg");
+    --wordmark-c: url("/img/logos/letters/C-green.svg");
+
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--wordmark-size) * 0.14);
+    block-size: var(--wordmark-size);
+  }
+  .tdc-wordmark__letter {
+    display: block;
+    block-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+  }
+  .tdc-wordmark__letter--t {
+    aspect-ratio: 40 / 52;
+    background-image: var(--wordmark-t);
+  }
+  .tdc-wordmark__letter--d {
+    aspect-ratio: 154 / 52;
+    background-image: var(--wordmark-d);
+  }
+  .tdc-wordmark__letter--c {
+    aspect-ratio: 40 / 52;
+    background-image: var(--wordmark-c);
+  }
+  [data-theme="light"] .tdc-wordmark {
+    --wordmark-t: url("/img/logos/letters/T-red.svg");
+    --wordmark-d: url("/img/logos/letters/D-red-long.svg");
+    --wordmark-c: url("/img/logos/letters/C-red.svg");
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]):not([data-theme="light"]) .tdc-wordmark {
+      --wordmark-t: url("/img/logos/letters/T-red.svg");
+      --wordmark-d: url("/img/logos/letters/D-red-long.svg");
+      --wordmark-c: url("/img/logos/letters/C-red.svg");
+    }
+  }
+}
+
+/* =====================================================================
+   Status screens (components/StatusScreen.tsx): 404, errors and every
+   end state of a form. Checkin's error screens, same motion: two slow
+   brand glows, the illustration rising in, copy staggered after it.
+   ===================================================================== */
+.status-glow-a,
+.status-glow-b {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+}
+.status-glow-a {
+  top: -20%;
+  left: -10%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 640px;
+  max-height: 640px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--status-tone) 26%, transparent),
+    transparent 70%
+  );
+  filter: blur(60px);
+  animation: status-glow-drift-a 14s ease-in-out infinite;
+}
+.status-glow-b {
+  bottom: -25%;
+  right: -12%;
+  width: 55vw;
+  height: 55vw;
+  max-width: 560px;
+  max-height: 560px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--status-tone) 16%, transparent),
+    transparent 70%
+  );
+  filter: blur(70px);
+  animation: status-glow-drift-b 18s ease-in-out infinite;
+}
+
+.status-reveal {
+  animation: status-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.status-stagger > * {
+  animation: status-rise-small 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.status-stagger > *:nth-child(1) { animation-delay: 140ms; }
+.status-stagger > *:nth-child(2) { animation-delay: 240ms; }
+.status-stagger > *:nth-child(3) { animation-delay: 340ms; }
+.status-stagger > *:nth-child(4) { animation-delay: 440ms; }
+.status-stagger > *:nth-child(5) { animation-delay: 540ms; }
+
+/* The illustration's accent (stamp, lock, badge) lands after the sheet. */
+.status-stamp {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: status-stamp 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s both;
+}
+.status-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: status-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.status-blink {
+  animation: status-blink 1.4s steps(1, end) infinite;
+}
+
+@keyframes status-rise {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes status-rise-small {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes status-stamp {
+  from { opacity: 0; transform: scale(1.7) rotate(-4deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes status-pop {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes status-blink {
+  0%, 55%, 100% { opacity: 1; }
+  65%, 90% { opacity: 0.15; }
+}
+@keyframes status-glow-drift-a {
+  0%, 100% { transform: translate(-8%, -6%) scale(1); }
+  50% { transform: translate(6%, 8%) scale(1.12); }
+}
+@keyframes status-glow-drift-b {
+  0%, 100% { transform: translate(6%, 4%) scale(1.05); }
+  50% { transform: translate(-8%, -8%) scale(0.95); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-glow-a,
+  .status-glow-b,
+  .status-reveal,
+  .status-stagger > *,
+  .status-stamp,
+  .status-pop,
+  .status-blink {
+    animation: none;
+  }
+}
+
+/* =====================================================================
+   Loading (components/FormsLoading.tsx), after checkin's app-loading:
+   the mark breathes, its boxes tick in turn, the label breathes along.
+   One 2.4s cycle; each row is offset with an inline animation-delay.
+   ===================================================================== */
+.forms-loading {
+  animation: forms-loading-in 0.3s ease-out 0.25s both;
+}
+.forms-loading-mark {
+  animation: forms-loading-pulse 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+.forms-loading-box {
+  animation: forms-loading-box 2.4s ease-in-out infinite both;
+}
+.forms-loading-tick {
+  stroke-dasharray: 1;
+  animation: forms-loading-tick 2.4s ease-in-out infinite both;
+}
+.forms-loading-line {
+  animation: forms-loading-line 2.4s ease-in-out infinite both;
+}
+.forms-loading-label {
+  animation: forms-loading-label 2.4s ease-in-out infinite;
+}
+
+@keyframes forms-loading-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes forms-loading-pulse {
+  0%, 100% { transform: scale(0.94); }
+  50% { transform: scale(1); }
+}
+/* Unticked, ticked (box fills, check draws), held, then cleared together. */
+@keyframes forms-loading-box {
+  0%, 8% { opacity: 0; }
+  18%, 78% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+@keyframes forms-loading-tick {
+  0%, 14% { stroke-dashoffset: 1; opacity: 1; }
+  28%, 78% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes forms-loading-line {
+  0%, 10% { opacity: 0.35; }
+  22%, 78% { opacity: 1; }
+  92%, 100% { opacity: 0.35; }
+}
+@keyframes forms-loading-label {
+  0%, 100% { opacity: 0.45; letter-spacing: 0.35em; }
+  50% { opacity: 1; letter-spacing: 0.45em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forms-loading,
+  .forms-loading-mark,
+  .forms-loading-box,
+  .forms-loading-tick,
+  .forms-loading-line,
+  .forms-loading-label {
+    animation: none;
+  }
+}

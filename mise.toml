@@ -1,0 +1,31 @@
+[tools]
+node = "24"
+pnpm = "10.30"
+
+[tasks.install]
+description = "Install dependencies"
+run = "pnpm install --frozen-lockfile"
+
+[tasks.build]
+description = "Static export to out/"
+run = "pnpm run build"
+
+[tasks.dev]
+description = "Start dev server (http://localhost:3000)"
+run = "pnpm run dev"
+
+[tasks.start]
+description = "Serve the static export in out/"
+run = "pnpm run start"
+
+[tasks.lint]
+description = "Biome"
+run = "pnpm run lint"
+
+[tasks.test]
+description = "Vitest"
+run = "pnpm run test"
+
+[tasks.check]
+description = "Lint, typecheck and test"
+run = ["pnpm run lint", "pnpm run typecheck", "pnpm run test"]

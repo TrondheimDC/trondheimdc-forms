@@ -1,0 +1,149 @@
+{
+  "id": 1,
+  "title": "Tilbakemelding på TDC 2026",
+  "description": "Takk for at du var med! Det tar to minutter, og vi leser alt.\n\nSvarene er **anonyme**.",
+  "submissionMessage": "Takk! Vi sees neste år.",
+  "expires": 0,
+  "state": 0,
+  "submitMultiple": false,
+  "isAnonymous": true,
+  "questions": [
+    {
+      "id": 101,
+      "type": "linearscale",
+      "text": "Hvor fornøyd var du med konferansen totalt?",
+      "description": "",
+      "isRequired": true,
+      "options": [],
+      "extraSettings": {
+        "optionsLowest": 1,
+        "optionsHighest": 5,
+        "optionsLabelLowest": "Lite fornøyd",
+        "optionsLabelHighest": "Veldig fornøyd"
+      }
+    },
+    {
+      "id": 102,
+      "type": "multiple",
+      "text": "Hvilke spor fulgte du?",
+      "description": "Velg alle som passer.",
+      "isRequired": false,
+      "options": [
+        {
+          "id": 1,
+          "text": "Arkitektur"
+        },
+        {
+          "id": 2,
+          "text": "Frontend"
+        },
+        {
+          "id": 3,
+          "text": "Data og AI"
+        },
+        {
+          "id": 4,
+          "text": "Workshops"
+        }
+      ],
+      "extraSettings": {
+        "allowOtherAnswer": true
+      }
+    },
+    {
+      "id": 103,
+      "type": "multiple_unique",
+      "text": "Kommer du tilbake neste år?",
+      "description": "",
+      "isRequired": true,
+      "options": [
+        {
+          "id": 5,
+          "text": "Ja"
+        },
+        {
+          "id": 6,
+          "text": "Kanskje"
+        },
+        {
+          "id": 7,
+          "text": "Nei"
+        }
+      ],
+      "extraSettings": {}
+    },
+    {
+      "id": 104,
+      "type": "dropdown",
+      "text": "Hvordan hørte du om TDC?",
+      "description": "",
+      "isRequired": false,
+      "options": [
+        {
+          "id": 8,
+          "text": "Kollega"
+        },
+        {
+          "id": 9,
+          "text": "Faggruppe / meetup"
+        },
+        {
+          "id": 10,
+          "text": "Sosiale medier"
+        },
+        {
+          "id": 11,
+          "text": "Annet"
+        }
+      ],
+      "extraSettings": {}
+    },
+    {
+      "id": 105,
+      "type": "ranking",
+      "text": "Ranger det som betyr mest for deg",
+      "description": "Flytt det viktigste øverst.",
+      "isRequired": false,
+      "options": [
+        {
+          "id": 12,
+          "text": "Foredragene"
+        },
+        {
+          "id": 13,
+          "text": "Maten"
+        },
+        {
+          "id": 14,
+          "text": "Nettverk"
+        },
+        {
+          "id": 15,
+          "text": "Standene"
+        }
+      ],
+      "extraSettings": {}
+    },
+    {
+      "id": 106,
+      "type": "long",
+      "text": "Hva var det beste med dagen?",
+      "description": "",
+      "isRequired": false,
+      "options": [],
+      "extraSettings": {}
+    },
+    {
+      "id": 107,
+      "type": "short",
+      "text": "E-post, hvis du vil at vi tar kontakt",
+      "description": "",
+      "isRequired": false,
+      "options": [],
+      "extraSettings": {
+        "validationType": "email"
+      }
+    }
+  ],
+  "isMaxSubmissionsReached": false
+}

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <!-- Source for every app icon. Edit this file, then run `node scripts/build-icons.mjs`. -->
+  <rect width="1024" height="1024" rx="205" fill="#0f0f0f"/>
+  <!-- TDC wordmark (as in checkin, regnskap and forening), filling the width so it holds up at tab size -->
+  <g fill="#9bf7a9" transform="translate(152 176) scale(2.9)">
+    <path d="M10.0986 17.333H0L0 0L39.8145 0V17.333H29.7178V52H10.0986V17.333Z"/>
+    <path transform="translate(47.09 0)" d="M153.732 34.667C153.732 44.2406 145.983 52 136.422 52H0L0 0L136.422 0C145.983 0 153.732 7.75938 153.732 17.333V34.667Z"/>
+    <path transform="translate(208.1 0)" d="M39.8145 17.333H19.9072V34.667H39.8145V52H17.3105C7.74943 52 0.000113284 44.2407 0 34.667L0 17.333C0.000185034 7.75938 7.74948 0 17.3105 0L39.8145 0V17.333Z"/>
+  </g>
+  <!-- A form: three answers, two ticked (forening has three people here) -->
+  <g fill="#9bf7a9">
+    <rect x="168" y="420" width="112" height="112" rx="26"/>
+    <rect x="344" y="454" width="512" height="44" rx="22"/>
+    <rect x="168" y="578" width="112" height="112" rx="26"/>
+    <rect x="344" y="612" width="400" height="44" rx="22"/>
+    <rect x="344" y="770" width="456" height="44" rx="22"/>
+  </g>
+  <g stroke="#0f0f0f" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M196 478l26 26 34-44"/>
+    <path d="M196 636l26 26 34-44"/>
+  </g>
+  <rect x="179" y="747" width="90" height="90" rx="18" stroke="#9bf7a9" stroke-width="22"/>
+</svg>
