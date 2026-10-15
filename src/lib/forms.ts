@@ -76,6 +76,8 @@ export type PublicForm = {
   submissionMessage: string | null
   // Unix seconds, 0 means never.
   expires: number
+  // Whether to say when it closes. Off, the form still closes at `expires`.
+  showExpiration: boolean
   state: number
   submitMultiple: boolean
   isAnonymous: boolean
@@ -100,6 +102,7 @@ export type RawPublicForm = {
   description?: string
   submissionMessage?: string | null
   expires?: number
+  showExpiration?: boolean
   state?: number
   submitMultiple?: boolean
   isAnonymous?: boolean
@@ -129,6 +132,7 @@ export const fromNextcloud = (
   description: raw.description ?? "",
   submissionMessage: raw.submissionMessage || null,
   expires: raw.expires ?? 0,
+  showExpiration: raw.showExpiration ?? false,
   state: raw.state ?? FORM_STATE_ACTIVE,
   // What Forms does, not what it stores: "multiple responses" is locked on
   // for a form that is anonymous or has a public link, and stays false in

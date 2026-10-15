@@ -151,6 +151,8 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
         localStorage.setItem(sentKey(form), new Date().toISOString())
       }
       sessionStorage.removeItem(draftKey(form))
+      // The draft it was about is sent: a new answer starts fresh.
+      setShowRestored(false)
       setStatus({ kind: "sent" })
       window.scrollTo({ top: 0 })
     } catch (error) {
@@ -272,8 +274,9 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
     )
   }
 
+  // Only when the form says to show it: a closing date can be set without.
   const expires =
-    form.expires > 0
+    form.expires > 0 && form.showExpiration
       ? new Date(form.expires * 1000).toLocaleString(
           i18n.language === "en" ? "en-GB" : "nb-NO",
           { dateStyle: "long", timeStyle: "short" },

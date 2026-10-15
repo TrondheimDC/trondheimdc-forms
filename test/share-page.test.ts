@@ -93,6 +93,15 @@ describe("fromNextcloud", () => {
     expect(f.questions[0]?.extraSettings).toEqual({})
     expect(f.expires).toBe(0)
     expect(f.isMaxSubmissionsReached).toBe(false)
+    expect(f.showExpiration).toBe(false)
+  })
+
+  // Forms can close a form at a date without showing it.
+  it("keeps whether to show the closing date apart from the date", () => {
+    const raw = { ...form, expires: 1_800_000_000, showExpiration: false }
+    const f = fromNextcloud(raw as never, "abc", "")
+    expect(f.expires).toBe(1_800_000_000)
+    expect(f.showExpiration).toBe(false)
   })
 
   // Forms locks "multiple responses" on for these, but stores false.
