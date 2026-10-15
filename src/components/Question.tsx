@@ -453,6 +453,9 @@ const Scale = ({ question: q, draft, problem, setValues }: ControlProps) => {
   const high = s.optionsHighest ?? 5
   const steps = Array.from({ length: high - low + 1 }, (_, i) => low + i)
   const value = draft.values[q.id]?.[0]
+  // 0 to 10, as for NPS: on a phone, separate buttons would be too narrow to
+  // hit, so the steps join into one bar and the gaps go to the buttons.
+  const long = steps.length > 7
 
   return (
     // Every step gets an equal share of the row, up to a comfortable size,
@@ -463,7 +466,12 @@ const Scale = ({ question: q, draft, problem, setValues }: ControlProps) => {
       style={{ maxWidth: `${steps.length * 3.75}rem` }}
     >
       <div
-        className="grid gap-1.5 sm:gap-2"
+        className={cn(
+          "grid sm:gap-2",
+          long
+            ? "max-sm:divide-x max-sm:divide-border-strong max-sm:overflow-hidden max-sm:rounded-xl max-sm:border-2 max-sm:border-border-strong"
+            : "gap-1.5",
+        )}
         style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}
       >
         {steps.map((step) => (
@@ -476,7 +484,13 @@ const Scale = ({ question: q, draft, problem, setValues }: ControlProps) => {
               checked={value === String(step)}
               onChange={() => setValues([String(step)])}
             />
-            <span className="scale-step flex h-11 cursor-pointer items-center justify-center rounded-xl border-2 border-border-strong font-display text-base tabular-nums transition-[border-color,background-color,color,scale] duration-150 hover:border-primary active:scale-95 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-brand peer-focus-visible:ring-[3px] peer-focus-visible:ring-ring/50">
+            <span
+              className={cn(
+                "scale-step flex h-11 cursor-pointer items-center justify-center rounded-xl border-2 border-border-strong font-display text-base tabular-nums transition-[border-color,background-color,color,scale] duration-150 hover:border-primary active:scale-95 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-brand peer-focus-visible:ring-[3px] peer-focus-visible:ring-ring/50",
+                long &&
+                  "max-sm:rounded-none max-sm:border-0 max-sm:text-sm max-sm:peer-focus-visible:ring-inset",
+              )}
+            >
               {step}
             </span>
           </label>
