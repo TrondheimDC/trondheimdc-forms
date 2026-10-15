@@ -94,4 +94,20 @@ describe("fromNextcloud", () => {
     expect(f.expires).toBe(0)
     expect(f.isMaxSubmissionsReached).toBe(false)
   })
+
+  // Forms locks "multiple responses" on for these, but stores false.
+  it("takes many answers through a public link, whatever is stored", () => {
+    const raw = { ...form, submitMultiple: false, isAnonymous: false }
+    expect(fromNextcloud(raw as never, "abc", "").submitMultiple).toBe(true)
+  })
+
+  it("takes many answers when anonymous, whatever is stored", () => {
+    const raw = { ...form, submitMultiple: false, isAnonymous: true }
+    expect(fromNextcloud(raw as never, "", "").submitMultiple).toBe(true)
+  })
+
+  it("keeps one answer per person for a logged-in form that says so", () => {
+    const raw = { ...form, submitMultiple: false, isAnonymous: false }
+    expect(fromNextcloud(raw as never, "", "").submitMultiple).toBe(false)
+  })
 })

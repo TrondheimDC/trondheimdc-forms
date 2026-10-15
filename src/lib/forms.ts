@@ -130,7 +130,15 @@ export const fromNextcloud = (
   submissionMessage: raw.submissionMessage || null,
   expires: raw.expires ?? 0,
   state: raw.state ?? FORM_STATE_ACTIVE,
-  submitMultiple: raw.submitMultiple ?? false,
+  // What Forms does, not what it stores: "multiple responses" is locked on
+  // for a form that is anonymous or has a public link, and stays false in
+  // the database (SettingsSidebarTab.vue, "If disabled, submitMultiple will
+  // be casted to true"). FormsService::canSubmit() lets every answer through
+  // a public link. A share hash here means the form was opened through one.
+  submitMultiple:
+    (raw.submitMultiple ?? false) ||
+    (raw.isAnonymous ?? false) ||
+    shareHash !== "",
   isAnonymous: raw.isAnonymous ?? false,
   isMaxSubmissionsReached: raw.isMaxSubmissionsReached ?? false,
   canSubmit: raw.canSubmit,
