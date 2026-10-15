@@ -33,5 +33,11 @@ export default async function FormPage({ params }: Props) {
   const form = configForm((await params).slug)
   if (!form) notFound()
 
-  return <FormLoader shareHash={form.shareHash} lang={form.lang} />
+  return (
+    <FormLoader
+      shareHash={form.shareHash}
+      lang={form.lang}
+      oneAnswer={form.oneAnswer}
+    />
+  )
 }

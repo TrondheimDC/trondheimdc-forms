@@ -30,8 +30,8 @@ type Status =
   | { kind: "failed"; message: string }
 
 // Remembers a sent answer in this browser, for forms that take one answer per
-// person. Nextcloud decides for real; this only spares people a form they
-// can't send.
+// person: as Nextcloud says for a logged-in user, or as `oneAnswer` in
+// forms.config.json says for a public link, where Nextcloud takes any number.
 const sentKey = (form: PublicForm) => `tdc-forms:sent:${form.id}`
 
 // Answers being written, kept for this tab only, so a reload or a trip back

@@ -22,13 +22,16 @@ import { StatusScreen } from "./StatusScreen"
 // named pages, or from the URL for /s/{hash}. So does `lang`, for a form
 // written in English: the page is prerendered in Norwegian like every other,
 // then switches as it starts, before the form has loaded. EN/NO in the
-// header still switch it back.
+// header still switch it back. `oneAnswer` holds the form to one answer
+// per person in this browser, where Nextcloud would take more.
 export const FormLoader = ({
   shareHash,
   lang,
+  oneAnswer,
 }: {
   shareHash?: string
   lang?: "no" | "en"
+  oneAnswer?: boolean
 }) => {
   const { t, i18n } = useTranslation("common", { keyPrefix: "load" })
   const [loaded, setLoaded] = useState<Loaded | null>(null)
@@ -63,7 +66,13 @@ export const FormLoader = ({
 
   switch (loaded.kind) {
     case "form":
-      return <FeedbackForm form={loaded.form} />
+      return (
+        <FeedbackForm
+          form={
+            oneAnswer ? { ...loaded.form, submitMultiple: false } : loaded.form
+          }
+        />
+      )
     case "login":
       return (
         <StatusScreen
