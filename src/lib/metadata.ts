@@ -22,10 +22,12 @@ export const pageMetadata = ({
   title,
   description,
   path,
+  image = OG_IMAGE,
 }: {
   title?: string // page name only; omit on the front page
   description: string
   path: string // e.g. "/tdc-2026"
+  image?: typeof OG_IMAGE
 }): Metadata => ({
   ...(title ? { title } : {}),
   description,
@@ -37,6 +39,6 @@ export const pageMetadata = ({
     title: title ? `TrondheimDC | ${title}` : "TrondheimDC",
     description,
     url: path,
-    images: [OG_IMAGE],
+    images: [image],
   },
 })

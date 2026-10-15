@@ -47,4 +47,6 @@ For a short, permanent address (QR codes, slides), add the form to `forms.config
 { "slug": "tdc-2026", "shareHash": "<hash>", "title": "Tilbakemelding på TDC 2026" }
 ```
 
+That also gives the link its own preview in Slack, LinkedIn and so on: the title on TDC's image, at `/{slug}/og.png`. Add `"description"` for a line of text under it. A `/s/<hash>` link always gets the general preview: the form only loads in the browser, and link previews don't run JavaScript. So for a link that will be shared widely, add a slug.
+
 See [AGENTS.md](./AGENTS.md) for how it works and [docs/deploy.md](./docs/deploy.md) for deploying.

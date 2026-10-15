@@ -1,6 +1,13 @@
 import config from "../../forms.config.json"
 
-export type ConfigForm = { slug: string; shareHash: string; title: string }
+export type ConfigForm = {
+  slug: string
+  shareHash: string
+  // The page title and the headline on its link preview.
+  title: string
+  // The link preview's text, if the site's own doesn't fit.
+  description?: string
+}
 
 export const configForms: ConfigForm[] = config.forms
 
