@@ -1,6 +1,6 @@
 {
   "login": false,
-  "nextcloudUrl": "https://nextcloud.example.org",
+  "nextcloudUrl": "https://hub.trondheimdc.no",
   "oauthClientId": "REPLACE_WITH_OAUTH_CLIENT_ID",
   "forms": [
     {

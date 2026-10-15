@@ -61,7 +61,7 @@ occ config:app:set oauth2 skipAuthPickerApplications --type=array --value='["Tro
 
 ## 3. Server (one-time)
 
-Replace `NEXTCLOUD_HOST` in `nginx/forms-nextcloud-proxy.conf` with the Nextcloud hostname, the same one as `nextcloudUrl` in `forms.config.json` (two lines).
+The Nextcloud host, `hub.trondheimdc.no`, is in `nginx/forms-nextcloud-proxy.conf` (two lines) and must match `nextcloudUrl` in `forms.config.json`.
 
 ```bash
 # From your machine
