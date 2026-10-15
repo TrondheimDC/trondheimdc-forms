@@ -136,6 +136,8 @@ export const renderOgImage = async ({
               fontFamily: "Space Grotesk",
               fontSize: site ? 96 : titleSize(title),
               lineHeight: 1.08,
+              // Even lines, rather than one word left on the last.
+              textWrap: "balance",
               color: GREEN,
               marginBottom: text ? 20 : 0,
             }}
