@@ -35,17 +35,62 @@ export const isNumeric = (value: string) =>
   /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(value)
 
 // Forms stores the pattern PHP-style, delimiters and flags included
-// ("/^[a-z]+$/i"). Translate what JS can express and skip the rest, leaving
-// the check to the server.
-export const phpRegex = (pattern: string | undefined): RegExp | null => {
+// ("/^[a-z]+$/i"). Translated only where JS reads it the same, and the rest
+// left to the server: a check here that PHP doesn't make would turn down
+// answers Nextcloud takes.
+export const phpRegex = (
+  pattern: string | undefined,
+): { test: (value: string) => boolean } | null => {
   if (!pattern) return null
   const match = /^(.)([\s\S]*)\1([a-zA-Z]*)$/.exec(pattern)
   if (!match) return null
   const [, , body = "", flags = ""] = match
-  const jsFlags = [...flags].filter((f) => "ims".includes(f)).join("")
+  // i, m and s mean the same in both. D only changes what $ does before a
+  // final newline, and u how letters beyond ASCII are read, which is left
+  // to the server (below).
+  if (![...flags].every((f) => "imsuD".includes(f)) || !sameInJs(body))
+    return null
+  let re: RegExp
   try {
-    return new RegExp(body, jsFlags)
+    re = new RegExp(body, [...flags].filter((f) => "ims".includes(f)).join(""))
   } catch {
     return null
   }
+  // Beyond ASCII PHP reads bytes, or with u Unicode classes (\w takes æ),
+  // where JS reads neither: only the server can tell.
+  return { test: (value) => /[\u0080-\uffff]/.test(value) || re.test(value) }
+}
+
+// Escapes JS reads as PCRE does. Any other letter is something else to PCRE
+// (\A, \z, \h, \v, \p{L}, \Q…\E) and a plain letter to JS.
+const JS_ESCAPES = "dDwWsSbBnrtfc"
+
+// Whether the pattern is free of PCRE syntax that JS reads differently or
+// not at all: escapes as above, \x other than two hex digits, (? groups
+// other than (?: (?= (?! (?<= (?<! and (?<name>, POSIX classes
+// ([:alpha:]), a class that starts with ] (a ] to PCRE) and {,n} (up to n
+// in newer PCRE, plain text in JS). Possessive
+// quantifiers (a++) are a syntax error in JS, so new RegExp turns them down.
+const sameInJs = (body: string) => {
+  for (let i = 0; i < body.length; i++) {
+    const rest = body.slice(i + 1)
+    if (body[i] === "\\") {
+      const next = rest[0] ?? ""
+      if (
+        next === "x"
+          ? !/^x[0-9a-fA-F]{2}/.test(rest)
+          : /[a-zA-Z]/.test(next) && !JS_ESCAPES.includes(next)
+      )
+        return false
+      i++
+    } else if (body[i] === "(" && rest.startsWith("?")) {
+      if (!/^\?(:|=|!|<=|<!|<[A-Za-z_]\w*>)/.test(rest)) return false
+    } else if (
+      (body[i] === "[" && /^\^?\]/.test(rest)) ||
+      (body[i] === "{" && rest.startsWith(","))
+    ) {
+      return false
+    }
+  }
+  return !/\[:\^?[a-z]+:\]/.test(body)
 }

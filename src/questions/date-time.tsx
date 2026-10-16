@@ -20,31 +20,78 @@ const isRange = (q: Question) =>
     ? !!q.extraSettings.dateRange
     : q.type === "time" && !!q.extraSettings.timeRange
 
-// A range is both ends, in order.
-const inOrder = z
-  .array(z.string())
-  .refine(
-    ([from, to, ...rest]) =>
-      from !== undefined && to !== undefined && !rest.length && from <= to,
-    { error: copy.problem.range },
-  )
-
-// dateMin / dateMax are either "YYYY-MM-DD" or a Unix timestamp.
+// dateMin / dateMax are either "YYYY-MM-DD" or a Unix timestamp, which
+// Nextcloud takes as its date in UTC.
 const toDate = (value: string | number | undefined) =>
   typeof value === "number"
     ? new Date(value * 1000).toISOString().slice(0, 10)
     : value
 
+// The limits as SubmissionService::validateDateTime() reads them: dates for
+// a date question, times for a time question, both ends allowed. One it
+// can't read is no limit there, so none here either. Forms has no limits
+// for date with time.
+const limitsOf = (q: Question) => {
+  const s = q.extraSettings
+  const fits = (pattern: RegExp) => (value: string | undefined) =>
+    value !== undefined && pattern.test(value) ? value : undefined
+  if (q.type === "date") {
+    const date = fits(/^\d{4}-\d{2}-\d{2}$/)
+    return { min: date(toDate(s.dateMin)), max: date(toDate(s.dateMax)) }
+  }
+  if (q.type === "time") {
+    const time = fits(/^\d{2}:\d{2}$/)
+    return { min: time(s.timeMin), max: time(s.timeMax) }
+  }
+  return {}
+}
+
+// "2026-10-16" as "16 October 2026", read as the day it says wherever the
+// browser is. Times are said as they are.
+const say = (q: Question, value: string | undefined) => {
+  if (value === undefined || q.type !== "date") return value
+  const [y = 0, m = 1, d = 1] = value.split("-").map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString("en-GB", {
+    dateStyle: "long",
+  })
+}
+
+// A range is both ends, in order, and each end within the limits. Dates and
+// times as the inputs give them sort as text.
+const rulesFor = (q: Question) => {
+  const range = isRange(q)
+  const { min, max } = limitsOf(q)
+  if (!range && !min && !max) return undefined
+  let rules = ends
+  if (range)
+    rules = rules.refine((v) => v.length === 2, {
+      error: copy.problem.bothEnds,
+      abort: true,
+    })
+  if (min || max)
+    rules = rules.refine(
+      (v) => v.every((end) => (!min || end >= min) && (!max || end <= max)),
+      {
+        error: copy.problem.outOfRange({
+          what: q.type === "date" ? "date" : "time",
+          min: say(q, min),
+          max: say(q, max),
+        }),
+        abort: true,
+      },
+    )
+  if (range)
+    rules = rules.refine(([from = "", to = ""]) => from <= to, {
+      error: copy.problem.range,
+    })
+  return rules
+}
+
 const DateTimeField = ({ question: q, name, aria }: FieldProps) => {
   const { register } = useFormContext()
-  const s = q.extraSettings
   const input = {
     type: q.type === "datetime" ? "datetime-local" : q.type,
-    ...(q.type === "date" && {
-      min: toDate(s.dateMin),
-      max: toDate(s.dateMax),
-    }),
-    ...(q.type === "time" && { min: s.timeMin, max: s.timeMax }),
+    ...limitsOf(q),
     enterKeyHint: "next",
     className: q.type === "datetime" ? "w-auto min-w-56" : "w-auto min-w-44",
   } as const
@@ -76,7 +123,7 @@ const dateOrTime = kind({
   value: (q) => ends.length(isRange(q) ? 2 : 1),
   empty: (q) => (isRange(q) ? ["", ""] : [""]),
   answer: () => ends.transform(filled),
-  rules: (q) => (isRange(q) ? inOrder : undefined),
+  rules: rulesFor,
   Field: DateTimeField,
 })
 

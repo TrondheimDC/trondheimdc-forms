@@ -1,15 +1,20 @@
 import { useFormContext } from "react-hook-form"
+import type { Question } from "@/lib/forms"
 import { cn } from "@/lib/utils"
 import * as z from "@/lib/zod"
 import { asNumber, type FieldProps, kind } from "./kind"
 
 // A step on a scale, from optionsLowest to optionsHighest. The field holds
 // the chosen step, "" for none.
+const range = (q: Question) => ({
+  low: q.extraSettings.optionsLowest ?? 1,
+  high: q.extraSettings.optionsHighest ?? 5,
+})
+
 const ScaleField = ({ question: q, name, aria }: FieldProps) => {
   const { register } = useFormContext()
   const s = q.extraSettings
-  const low = s.optionsLowest ?? 1
-  const high = s.optionsHighest ?? 5
+  const { low, high } = range(q)
   const steps = Array.from({ length: high - low + 1 }, (_, i) => low + i)
   // 0 to 10, as for NPS: on a phone, separate buttons would be too narrow to
   // hit, so the steps join into one bar and the gaps go to the buttons.
@@ -65,7 +70,12 @@ const ScaleField = ({ question: q, name, aria }: FieldProps) => {
 }
 
 export const linearscale = kind({
-  value: () => z.string(),
+  // None, or a step the scale still has.
+  value: (q) =>
+    z.string().refine((v) => {
+      const { low, high } = range(q)
+      return v === "" || (/^-?\d+$/.test(v) && +v >= low && +v <= high)
+    }),
   empty: () => "",
   answer: () => asNumber,
   Field: ScaleField,

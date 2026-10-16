@@ -117,6 +117,21 @@ export const copy = {
     number: "Enter a number.",
     regex: "The answer is not in the right format.",
     range: "“To” can't be before “From”.",
+    bothEnds: "Fill in both “From” and “To”.",
+    outOfRange: ({
+      what,
+      min,
+      max,
+    }: {
+      what: "date" | "time"
+      min?: string
+      max?: string
+    }) =>
+      min && max
+        ? `Choose a ${what} from ${min} to ${max}.`
+        : min
+          ? `Choose a ${what} no earlier than ${min}.`
+          : `Choose a ${what} no later than ${max}.`,
     color: "Choose a colour.",
     files: ({ count }: { count: number }) =>
       count === 1 ? "Upload only one file." : `Upload at most ${count} files.`,

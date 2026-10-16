@@ -172,6 +172,8 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
       sending={sending}
       onStartOver={() => {
         sessionStorage.removeItem(draftKey(form))
+        // A failed try at sending belongs to the round before.
+        sending.reset()
         setRound((r) => r + 1)
       }}
     />

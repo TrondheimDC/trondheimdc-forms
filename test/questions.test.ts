@@ -178,9 +178,52 @@ describe("Forms' rules", () => {
       "“To” can't be before “From”.",
     )
     expect(problem(question, ["2026-10-01", ""])).toBe(
-      "“To” can't be before “From”.",
+      "Fill in both “From” and “To”.",
+    )
+    expect(problem(question, ["", "2026-10-01"])).toBe(
+      "Fill in both “From” and “To”.",
     )
     expect(problem(question, ["2026-10-01", "2026-10-02"])).toBeUndefined()
+    expect(problem(question, ["2026-10-01", "2026-10-01"])).toBeUndefined()
+  })
+
+  it("holds dates and times to their limits, both ends included", () => {
+    const date = q({
+      id: 1,
+      type: "date",
+      extraSettings: { dateMin: "2026-10-01", dateMax: "2026-10-31" },
+    })
+    expect(problem(date, ["2026-10-01"])).toBeUndefined()
+    expect(problem(date, ["2026-10-31"])).toBeUndefined()
+    expect(problem(date, ["2026-09-30"])).toBe(
+      "Choose a date from 1 October 2026 to 31 October 2026.",
+    )
+    expect(problem(date, ["2026-11-01"])).toBeDefined()
+
+    // A timestamp is its date in UTC: 2026-10-15 23:30 in Trondheim.
+    const stamp = q({
+      id: 1,
+      type: "date",
+      extraSettings: { dateMin: Date.UTC(2026, 9, 15, 21, 30) / 1000 },
+    })
+    expect(problem(stamp, ["2026-10-15"])).toBeUndefined()
+    expect(problem(stamp, ["2026-10-14"])).toBe(
+      "Choose a date no earlier than 15 October 2026.",
+    )
+
+    const time = q({
+      id: 1,
+      type: "time",
+      extraSettings: { timeRange: true, timeMin: "09:00", timeMax: "17:00" },
+    })
+    expect(problem(time, ["09:00", "17:00"])).toBeUndefined()
+    expect(problem(time, ["08:59", "12:00"])).toBe(
+      "Choose a time from 09:00 to 17:00.",
+    )
+    expect(problem(time, ["12:00", "17:01"])).toBeDefined()
+    expect(problem(time, ["16:00", "10:00"])).toBe(
+      "“To” can't be before “From”.",
+    )
   })
 
   it("won't take a file answer with an upload still on its way", () => {
@@ -210,7 +253,7 @@ describe("Forms' rules", () => {
     ).toBeUndefined()
   })
 
-  it("counts a number grid of zeros as unanswered, as PHP does", () => {
+  it("counts a zero in a number grid as an answer, as Forms does", () => {
     const question = q({
       id: 1,
       type: "grid",
@@ -221,7 +264,8 @@ describe("Forms' rules", () => {
       ],
       extraSettings: { questionType: "number" },
     })
-    expect(problem(question, { "1:10": "0" })).toBe(
+    expect(problem(question, { "1:10": "0" })).toBeUndefined()
+    expect(problem(question, { "1:10": " " })).toBe(
       "This question is required.",
     )
     expect(problem(question, { "1:10": "x" })).toBe("Enter a number.")
@@ -283,6 +327,39 @@ describe("restoreValues", () => {
     expect(restoreValues(range, { q3: ["2026-10-01", ""] })).toEqual({
       q3: ["2026-10-01", ""],
     })
+  })
+
+  it("checks a draft against the options the question has now", () => {
+    const options = [
+      { id: 1, text: "a" },
+      { id: 2, text: "b" },
+      { id: 3, text: "c" },
+    ]
+    const changed = [
+      q({ id: 1, type: "multiple", options }),
+      q({ id: 2, type: "ranking", options }),
+      q({ id: 3, type: "dropdown", options }),
+      q({
+        id: 4,
+        type: "linearscale",
+        extraSettings: { optionsLowest: 1, optionsHighest: 5 },
+      }),
+    ]
+    expect(
+      restoreValues(changed, {
+        q1: { chosen: [1, 9], otherChosen: true, other: "x" },
+        q2: [2, 1],
+        q3: "9",
+        q4: "6",
+      }),
+    ).toEqual({
+      ...emptyValues(changed),
+      q1: { chosen: [1], otherChosen: false, other: "x" },
+    })
+    expect(restoreValues(changed, { q2: [3, 1, 2], q3: "2", q4: "5" })).toEqual(
+      { ...emptyValues(changed), q2: [3, 1, 2], q3: "2", q4: "5" },
+    )
+    expect(restoreValues(changed, { q2: [1, 2, 2] })).toBeNull()
   })
 
   it("rejects anything else read back from storage", () => {

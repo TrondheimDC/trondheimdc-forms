@@ -28,7 +28,11 @@ const DropdownField = ({ question: q, name, aria }: FieldProps) => {
 }
 
 export const dropdown = kind({
-  value: () => z.string(),
+  // None, or an option the question still has.
+  value: (q) =>
+    z
+      .string()
+      .refine((v) => v === "" || q.options.some((o) => String(o.id) === v)),
   empty: () => "",
   answer: () => asNumber,
   Field: DropdownField,

@@ -188,7 +188,15 @@ const Arrow = ({ up }: { up?: boolean }) => (
 )
 
 export const ranking = kind({
-  value: () => order,
+  // Untouched, or every option the question has once each: a draft from
+  // before the options changed starts over.
+  value: (q) =>
+    order.refine(
+      (ids) =>
+        ids.length === 0 ||
+        (ids.length === q.options.length &&
+          q.options.every((o) => ids.includes(o.id))),
+    ),
   empty: () => [],
   answer: () => order.transform((ids) => (ids.length > 0 ? ids : undefined)),
   hint: () => copy.form.rankHint,

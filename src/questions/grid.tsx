@@ -136,16 +136,14 @@ export const grid = kind({
   value: () => cells,
   empty: () => ({}),
   answer: (q) => cells.transform((c) => toAnswer(q, c)),
+  // Forms counts a grid as answered when any cell has something in it, a
+  // zero included: the answer only has those, so required is as for the
+  // rest, in index.ts.
   rules: (q) =>
-    gridAnswerSchema
-      // Forms counts a grid as answered when any cell has something PHP
-      // thinks is truthy, so a number grid of only zeros is unanswered.
-      .refine(
-        (a) => !q.isRequired || allCells(a).some((v) => v !== "" && v !== "0"),
-        { error: copy.problem.required },
-      )
-      .refine((a) => gridType(q) !== "number" || allCells(a).every(isNumeric), {
-        error: copy.problem.number,
-      }),
+    gridType(q) === "number"
+      ? gridAnswerSchema.refine((a) => allCells(a).every(isNumeric), {
+          error: copy.problem.number,
+        })
+      : undefined,
   Field: GridField,
 })

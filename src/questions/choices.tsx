@@ -122,8 +122,17 @@ const ChoicesField = ({ question: q, name, aria }: FieldProps) => {
 
 const empty = () => ({ chosen: [], otherChosen: false, other: "" })
 
+// A draft keeps only the options the question still has, Other included:
+// one taken out since couldn't be seen, or unticked.
+const value = (q: Question) =>
+  choices.transform((v) => ({
+    ...v,
+    chosen: v.chosen.filter((id) => q.options.some((o) => o.id === id)),
+    otherChosen: v.otherChosen && !!q.extraSettings.allowOtherAnswer,
+  }))
+
 export const multiple = kind({
-  value: () => choices,
+  value,
   empty,
   answer,
   rules: (q) => {
@@ -147,7 +156,7 @@ export const multiple = kind({
 })
 
 export const multipleUnique = kind({
-  value: () => choices,
+  value,
   empty,
   answer,
   Field: ChoicesField,
