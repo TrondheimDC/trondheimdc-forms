@@ -148,7 +148,6 @@ export const copy = {
   },
   footer: {
     contact: "connect@trondheimdc.no",
-    orgNr: "Org no.",
   },
   load: {
     loading: "Loading the form",
