@@ -5,8 +5,8 @@ import forms from "./forms.config"
 // The build is a static export (output: "export"), served by nginx, which
 // also forwards the Nextcloud paths (docs/nginx-forms.trondheimdc.no.conf). A
 // static export refuses rewrites even in dev, so dev skips the export and
-// does nginx's rewrites itself: /s/{hash} → s.html, and the two Nextcloud
-// paths public forms need. nginx's other rules (methods, sandboxing
+// does nginx's rewrites itself: /s/{hash} → s.html, and the Nextcloud paths
+// public forms need. nginx's other rules (methods, sandboxing
 // Nextcloud's HTML) are production's; dev only needs the paths to work.
 export default function nextConfig(phase: string): NextConfig {
   const shared: NextConfig = {
@@ -44,6 +44,13 @@ export default function nextConfig(phase: string): NextConfig {
           source: "/ocs/v2.php/apps/forms/api/v3/forms/:id/submissions",
           has: api,
           destination: `${nextcloud}/ocs/v2.php/apps/forms/api/v3/forms/:id/submissions`,
+        },
+        // Uploading a file for a file question (src/lib/submit.ts).
+        {
+          source:
+            "/ocs/v2.php/apps/forms/api/v3/forms/:id/submissions/files/:questionId",
+          has: api,
+          destination: `${nextcloud}/ocs/v2.php/apps/forms/api/v3/forms/:id/submissions/files/:questionId`,
         },
       ],
     }

@@ -48,7 +48,12 @@ Put the **Client Identifier** in `forms.config.ts` (`oauthClientId`, not secret)
 occ config:app:set oauth2 skipAuthPickerApplications --type=array --value='["TrondheimDC Forms"]'
 ```
 
-**Optional: real visitor IPs.** Every request reaches Nextcloud from this web server, so Nextcloud's brute-force protection counts all visitors together. Adding this server to `trusted_proxies` in Nextcloud's `config.php` makes Nextcloud read the visitor's IP from `X-Forwarded-For`; add `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;` to both Nextcloud locations in the nginx file too.
+**Visitor IPs (needed).** Every request reaches Nextcloud from this web server, so Nextcloud's brute-force protection counts all visitors as one. Each unknown share hash (a mistyped link, a bot, a members-only link, which the site tries as a share hash first) is a failed try: after about 8 in 12 hours every form load waits 25 seconds, and after 10 in 30 minutes every form load fails. The nginx file sends the visitor's address in `X-Forwarded-For`; Nextcloud only reads it from a trusted proxy, so add this server to `trusted_proxies` with `occ` (there is no setting for it in the web UI). Check what is there first, and add to it rather than replacing it:
+
+```bash
+sudo -u www-data php occ config:system:get trusted_proxies
+sudo -u www-data php occ config:system:set trusted_proxies <next index> --value=<this server's address, as Nextcloud sees it>
+```
 
 ## 3. Server (one-time)
 
