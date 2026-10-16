@@ -35,10 +35,14 @@ export const Question = ({
   // mid-sentence, and only after a try at submitting for one with nothing
   // in it. Once shown, a problem goes away as soon as it is fixed.
   const [left, setLeft] = useState(false)
-  const problem =
+  const shows = (left: boolean) =>
     typeof message === "string" && (isSubmitted || (left && state !== "blank"))
-      ? message
-      : undefined
+  const problem =
+    typeof message === "string" && shows(left) ? message : undefined
+  // What a screen reader is told on leaving a question with a problem.
+  // Only then: not on every change while answering, nor for every card at
+  // once on submit, when focus goes to the first problem instead.
+  const [said, setSaid] = useState("")
 
   const ids = {
     legend: `q-${q.id}-label`,
@@ -60,7 +64,12 @@ export const Question = ({
       data-invalid={problem ? "" : undefined}
       data-answered={state === "done" ? "" : undefined}
       onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) setLeft(true)
+        if (e.currentTarget.contains(e.relatedTarget)) return
+        setLeft(true)
+        if (typeof message === "string" && shows(true)) setSaid(message)
+      }}
+      onFocus={() => {
+        if (said) setSaid("")
       }}
       // Scroll and focus target for the first problem on submit.
       id={`q-${q.id}`}
@@ -148,6 +157,10 @@ export const Question = ({
           )}
         </AnimatePresence>
       </div>
+
+      <p className="sr-only" aria-live="polite">
+        {said}
+      </p>
     </fieldset>
   )
 }

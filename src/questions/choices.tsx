@@ -42,16 +42,26 @@ const ChoicesField = ({ question: q, name, aria }: FieldProps) => {
   const single = q.type === "multiple_unique"
   const options = useShuffled(q.options, q.extraSettings.shuffleOptions)
   const otherInput = useRef<HTMLInputElement>(null)
+  // Whether Other was ticked by pointer, not arrowed onto or ticked with
+  // Space: only a click goes on into the text, keeping a keyboard in the
+  // group.
+  const pointer = useRef(false)
   const max = single ? 0 : limits(q).max
   const count = chosen.length + (otherChosen ? 1 : 0)
 
   return (
-    <div className="space-y-2">
+    <div
+      className="space-y-2"
+      onKeyDownCapture={() => {
+        pointer.current = false
+      }}
+    >
       {options.map((o) => (
         <label key={o.id} className={option}>
           <Check
             type={single ? "radio" : "checkbox"}
             name={name}
+            aria-describedby={aria["aria-describedby"]}
             aria-invalid={aria["aria-invalid"]}
             checked={chosen.includes(o.id)}
             onChange={(e) =>
@@ -70,25 +80,35 @@ const ChoicesField = ({ question: q, name, aria }: FieldProps) => {
         </label>
       ))}
       {q.extraSettings.allowOtherAnswer && (
-        <div className={cn(option, "cursor-default flex-wrap")}>
-          <label className="flex cursor-pointer items-center gap-3">
+        // The label covers the whole row, under the text input, so all of
+        // the row ticks Other, as for the other options.
+        <div className={cn(option, "relative flex-wrap")}>
+          <label
+            className="flex min-h-7 cursor-pointer items-center gap-3 after:absolute after:inset-0 after:rounded-lg"
+            onPointerDown={() => {
+              pointer.current = true
+            }}
+          >
             <Check
               type={single ? "radio" : "checkbox"}
               name={name}
+              aria-describedby={aria["aria-describedby"]}
+              aria-invalid={aria["aria-invalid"]}
               checked={otherChosen}
               onChange={(e) => {
                 set({
                   otherChosen: e.target.checked,
                   ...(single ? { chosen: [] } : {}),
                 })
-                if (e.target.checked) otherInput.current?.focus()
+                if (e.target.checked && pointer.current)
+                  otherInput.current?.focus()
               }}
             />
             <span>{copy.form.other}</span>
           </label>
           <Input
             ref={otherInput}
-            className="h-9 min-w-48 flex-1"
+            className="relative h-9 min-w-48 flex-1"
             aria-label={copy.form.other}
             aria-describedby={aria["aria-describedby"]}
             placeholder={copy.form.otherPlaceholder}

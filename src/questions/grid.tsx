@@ -56,6 +56,7 @@ const GridField = ({ question: q, name, aria }: FieldProps) => {
   const type = gridType(q)
   const columns = gridColumns(q)
   const invalid = aria["aria-invalid"]
+  const describedBy = aria["aria-describedby"]
 
   const set = (row: Option, column: Option, value: string) => {
     const next = { ...field.value }
@@ -102,6 +103,7 @@ const GridField = ({ question: q, name, aria }: FieldProps) => {
                         inputMode="decimal"
                         enterKeyHint="next"
                         aria-label={label}
+                        aria-describedby={describedBy}
                         aria-invalid={invalid}
                         className="h-9 min-w-16 px-2 text-center tabular-nums"
                         value={value}
@@ -113,6 +115,7 @@ const GridField = ({ question: q, name, aria }: FieldProps) => {
                           type={type === "radio" ? "radio" : "checkbox"}
                           name={`${name}-${r.id}`}
                           aria-label={label}
+                          aria-describedby={describedBy}
                           aria-invalid={invalid}
                           checked={value !== ""}
                           onChange={(e) =>

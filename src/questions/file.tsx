@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { copy } from "@/copy"
-import { uploadedFileSchema } from "@/lib/answers"
+import { type UploadedFile, uploadedFileSchema } from "@/lib/answers"
 import type { ExtraSettings, Question } from "@/lib/forms"
 import { SubmitError, upload } from "@/lib/submit"
 import { cn } from "@/lib/utils"
@@ -120,24 +120,62 @@ const FilesField = ({ form, question: q, name, aria }: FieldProps) => {
   const full = max > 0 && chosen.length >= max
   // Chosen files this site turns down before sending anything.
   const [refused, setRefused] = useState("")
+  // What a screen reader is told once an upload is in.
+  const [uploadedNote, setUploadedNote] = useState("")
+  // Where focus goes once the list has changed under it: the picker goes
+  // at the limit, and a removed file's button with the file.
+  const [focusTo, setFocusTo] = useState<number | "picker" | null>(null)
+  const list = useRef<HTMLUListElement>(null)
+  const picker = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (focusTo === null) return
+    setFocusTo(null)
+    if (focusTo === "picker") picker.current?.focus()
+    else
+      list.current
+        ?.querySelector<HTMLElement>(`[data-file="${focusTo}"] button`)
+        ?.focus()
+  }, [focusTo])
   const sending = useMutation({
     mutationFn: (files: File[]) => upload(form, q.id, files),
     onMutate: () => set(() => ({ uploading: true })),
-    onSuccess: (uploaded) =>
-      set((current) => ({
-        files: [...current.files, ...uploaded],
-        uploading: false,
-      })),
+    onSuccess: (uploaded) => {
+      const now = current().files
+      set(() => ({ files: [...now, ...uploaded], uploading: false }))
+      setUploadedNote(
+        copy.form.uploaded({ names: uploaded.map((f) => f.fileName) }),
+      )
+      // At the limit the picker goes, focus on it or not: to the last file.
+      const last = uploaded.at(-1)
+      if (
+        last &&
+        max > 0 &&
+        now.length + uploaded.length >= max &&
+        document.activeElement === picker.current
+      )
+        setFocusTo(last.uploadedFileId)
+    },
     onError: () => set(() => ({ uploading: false })),
   })
   const busy = sending.isPending
   const error = refused || (sending.error ? uploadError(sending.error) : "")
 
+  // Focus on to the next file, or the one before, or to the picker once
+  // none are left.
+  const remove = (file: UploadedFile) => {
+    const files = current().files
+    const at = files.findIndex((g) => g.uploadedFileId === file.uploadedFileId)
+    const left = files.filter((g) => g.uploadedFileId !== file.uploadedFileId)
+    set(() => ({ files: left }))
+    setUploadedNote("")
+    setFocusTo((left[at] ?? left[at - 1])?.uploadedFileId ?? "picker")
+  }
+
   const onChoose = (input: HTMLInputElement) => {
     const picked = [...(input.files ?? [])]
     // Lets the same file be chosen again after a failed try.
     input.value = ""
-    if (picked.length === 0) return
+    if (picked.length === 0 || busy) return
     setRefused("")
     sending.reset()
     if (max > 0 && chosen.length + picked.length > max) {
@@ -162,10 +200,11 @@ const FilesField = ({ form, question: q, name, aria }: FieldProps) => {
   return (
     <div className="space-y-2">
       {chosen.length > 0 && (
-        <ul className="space-y-2">
+        <ul ref={list} className="space-y-2">
           {chosen.map((f) => (
             <li
               key={f.uploadedFileId}
+              data-file={f.uploadedFileId}
               className="flex items-center gap-3 rounded-lg border border-border bg-background py-1 pl-4 pr-1"
             >
               <svg
@@ -186,15 +225,13 @@ const FilesField = ({ form, question: q, name, aria }: FieldProps) => {
                 type="button"
                 variant="ghost"
                 size="icon"
-                disabled={busy}
+                // Not disabled while uploading, which would drop focus.
+                aria-disabled={busy || undefined}
+                className="aria-disabled:opacity-55"
                 aria-label={copy.form.removeFile({ name: f.fileName })}
-                onClick={() =>
-                  set((current) => ({
-                    files: current.files.filter(
-                      (g) => g.uploadedFileId !== f.uploadedFileId,
-                    ),
-                  }))
-                }
+                onClick={() => {
+                  if (!busy) remove(f)
+                }}
               >
                 <svg
                   aria-hidden="true"
@@ -223,11 +260,17 @@ const FilesField = ({ form, question: q, name, aria }: FieldProps) => {
         >
           <input
             {...aria}
+            ref={picker}
             type="file"
             className="sr-only"
             multiple={max !== 1}
             accept={acceptFor(s)}
-            disabled={busy}
+            // Not disabled while uploading, which would drop focus: the
+            // picker just doesn't open.
+            aria-disabled={busy || undefined}
+            onClick={(e) => {
+              if (busy) e.preventDefault()
+            }}
             onChange={(e) => onChoose(e.currentTarget)}
           />
           {busy ? (
@@ -259,6 +302,9 @@ const FilesField = ({ form, question: q, name, aria }: FieldProps) => {
         className="text-sm font-semibold text-danger empty:hidden"
       >
         {error}
+      </p>
+      <p aria-live="polite" className="sr-only">
+        {uploadedNote}
       </p>
     </div>
   )

@@ -1,5 +1,5 @@
 import { Reorder, useDragControls } from "motion/react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { copy } from "@/copy"
 import type { Option } from "@/lib/forms"
@@ -12,7 +12,7 @@ import { type FieldProps, kind, useField, useShuffled } from "./kind"
 // (and the keyboard); either way the rows slide into place.
 const order = z.array(z.number())
 
-const RankingField = ({ question: q, name }: FieldProps) => {
+const RankingField = ({ question: q, name, aria }: FieldProps) => {
   const { field } = useField(name, order)
   const shuffled = useShuffled(q.options, q.extraSettings.shuffleOptions)
   const chosen = field.value.length > 0 ? field.value : undefined
@@ -22,6 +22,14 @@ const RankingField = ({ question: q, name }: FieldProps) => {
     : shuffled
   const ids = items.map((o) => o.id)
   const [announcement, setAnnouncement] = useState("")
+  const describedBy = aria["aria-describedby"]
+  // "Use this order" goes once it is used: focus goes to what says so
+  // instead of being dropped.
+  const done = useRef<HTMLParagraphElement>(null)
+  const [kept, setKept] = useState(false)
+  useEffect(() => {
+    if (kept) done.current?.focus()
+  }, [kept])
 
   const move = (index: number, by: -1 | 1) => {
     const item = items[index]
@@ -49,6 +57,7 @@ const RankingField = ({ question: q, name }: FieldProps) => {
             text={o.text}
             position={i}
             count={items.length}
+            describedBy={describedBy}
             onMove={(by) => move(i, by)}
           />
         ))}
@@ -57,7 +66,11 @@ const RankingField = ({ question: q, name }: FieldProps) => {
         {announcement}
       </p>
       {chosen ? (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <p
+          ref={done}
+          tabIndex={-1}
+          className="flex items-center gap-2 text-sm text-muted-foreground outline-none"
+        >
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
@@ -77,7 +90,11 @@ const RankingField = ({ question: q, name }: FieldProps) => {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => field.onChange(ids)}
+          aria-describedby={describedBy}
+          onClick={() => {
+            field.onChange(ids)
+            setKept(true)
+          }}
         >
           {copy.form.keepOrder}
         </Button>
@@ -91,12 +108,14 @@ const RankItem = ({
   text,
   position,
   count,
+  describedBy,
   onMove,
 }: {
   id: number
   text: string
   position: number
   count: number
+  describedBy: string | undefined
   onMove: (by: -1 | 1) => void
 }) => {
   const controls = useDragControls()
@@ -148,6 +167,7 @@ const RankItem = ({
           if (position === 1) down.current?.focus()
         }}
         aria-label={copy.form.moveUp({ item: text })}
+        aria-describedby={describedBy}
       >
         <Arrow up />
       </Button>
@@ -162,6 +182,7 @@ const RankItem = ({
           if (position === count - 2) up.current?.focus()
         }}
         aria-label={copy.form.moveDown({ item: text })}
+        aria-describedby={describedBy}
       >
         <Arrow />
       </Button>

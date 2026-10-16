@@ -57,12 +57,24 @@ const readDraft = (form: PublicForm) => {
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-// The first thing to focus in a question: the chosen option of a radio
-// group if there is one, else the first control.
-const firstControl = (question: Element | null) =>
-  question?.querySelector<HTMLElement>(
-    "input:checked:not([type=checkbox]), input:not([disabled]), select, textarea, button:not([disabled])",
+// The first thing to focus in a question: its first control, or for a
+// radio group the chosen option if there is one, as Tab would.
+const firstControl = (question: Element | null) => {
+  const first = question?.querySelector<HTMLElement>(
+    "input:not([disabled]):not([tabindex='-1']), select, textarea, button:not([disabled])",
   )
+  if (!(first instanceof HTMLInputElement) || first.type !== "radio")
+    return first
+  const group = question?.querySelectorAll<HTMLInputElement>(
+    `input[type=radio][name="${CSS.escape(first.name)}"]`,
+  )
+  return [...(group ?? [])].find((r) => r.checked) ?? first
+}
+
+// Where Enter goes on from: a one-line field, not a choice or a button.
+const isOneLine = (el: Element): el is HTMLInputElement =>
+  el instanceof HTMLInputElement &&
+  !["checkbox", "radio", "submit", "button", "color", "file"].includes(el.type)
 
 // Sending an answer, and what happens once it is in.
 const useSending = (form: PublicForm) =>
@@ -170,6 +182,8 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
       key={round}
       form={form}
       sending={sending}
+      // A new round starts at the title, where an empty form begins.
+      focusTitle={round > 0}
       onStartOver={() => {
         sessionStorage.removeItem(draftKey(form))
         // A failed try at sending belongs to the round before.
@@ -186,10 +200,12 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
 const Answering = ({
   form,
   sending,
+  focusTitle,
   onStartOver,
 }: {
   form: PublicForm
   sending: Sending
+  focusTitle: boolean
   onStartOver: () => void
 }) => {
   const { user } = useSession()
@@ -206,6 +222,12 @@ const Answering = ({
   })
   const { handleSubmit, subscribe, trigger } = methods
   const formRef = useRef<HTMLFormElement>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null)
+
+  // Only on the round's first render: the round is a new form, by key.
+  useEffect(() => {
+    if (focusTitle) titleRef.current?.focus()
+  }, [focusTitle])
 
   // A restored draft is checked straight away, so leaving a question shows
   // what is wrong with it without changing it first.
@@ -236,8 +258,12 @@ const Answering = ({
       .filter((q) => problems[fieldName(q.id)])
       .map((q) => document.getElementById(`q-${q.id}`))
     // Focus the first problem without the browser's jump, then glide to
-    // it, and give every card with a problem a shake.
-    firstControl(invalid[0] ?? null)?.focus({ preventScroll: true })
+    // it, and give every card with a problem a shake. Focus waits a frame,
+    // for its card to render the problem: the control is then described by
+    // it, and a screen reader reads it out.
+    requestAnimationFrame(() =>
+      firstControl(invalid[0] ?? null)?.focus({ preventScroll: true }),
+    )
     invalid[0]?.scrollIntoView({
       behavior: reducedMotion() ? "auto" : "smooth",
       block: "center",
@@ -271,18 +297,17 @@ const Answering = ({
         ? copy.form.errorGeneric
         : null
 
-  // Enter in a one-line field goes on to the next question, as on a phone's
-  // "next" key, rather than submitting a form that is half done. The last
-  // one lands on the submit button.
+  // Enter in a one-line field goes on to the next one in the question (a
+  // range's "To", a grid's next cell), then to the next question, as on a
+  // phone's "next" key, rather than submitting a form that is half done.
+  // The last one lands on the submit button.
   const onKeyDown = (event: React.KeyboardEvent<HTMLFormElement>) => {
     const target = event.target
     if (
       event.key !== "Enter" ||
       event.nativeEvent.isComposing ||
-      !(target instanceof HTMLInputElement) ||
-      ["checkbox", "radio", "submit", "button", "color", "file"].includes(
-        target.type,
-      )
+      !(target instanceof Element) ||
+      !isOneLine(target)
     )
       return
     event.preventDefault()
@@ -290,6 +315,14 @@ const Answering = ({
       ...(formRef.current?.querySelectorAll(".question-card") ?? []),
     ]
     const current = cards.findIndex((card) => card.contains(target))
+    const inCard = [...(cards[current]?.querySelectorAll("input") ?? [])]
+      .filter(isOneLine)
+      .filter((input) => !input.disabled)
+    const sibling = inCard[inCard.indexOf(target) + 1]
+    if (sibling) {
+      sibling.focus()
+      return
+    }
     const next = firstControl(cards[current + 1] ?? null)
     if (next) {
       next.focus({ preventScroll: true })
@@ -323,7 +356,9 @@ const Answering = ({
         <Progress questions={form.questions} />
 
         <header className="form-rise space-y-4" style={{ "--i": 0 }}>
-          <h1>{form.title}</h1>
+          <h1 ref={titleRef} tabIndex={-1} className="outline-none">
+            {form.title}
+          </h1>
           {form.description && (
             <div className="text-muted-foreground">
               <Markdown>{form.description}</Markdown>

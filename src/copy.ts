@@ -67,10 +67,14 @@ export const copy = {
       `“${item}” is now number ${position}.`,
     cell: ({ row, column }: { row: string; column: string }) =>
       `${row}: ${column}`,
+    chooseColour: "Choose a colour",
+    clearColour: "Clear",
     chooseFile: "Choose a file",
     chooseFiles: "Choose files",
     uploading: "Uploading …",
     removeFile: ({ name }: { name: string }) => `Remove “${name}”`,
+    uploaded: ({ names }: { names: string[] }) =>
+      `${names.map((n) => `“${n}”`).join(", ")} uploaded.`,
     // Forms' file types, by its name for them.
     fileKinds: new Map([
       ["image", "images"],

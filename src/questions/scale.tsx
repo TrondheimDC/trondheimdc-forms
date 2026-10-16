@@ -39,6 +39,7 @@ const ScaleField = ({ question: q, name, aria }: FieldProps) => {
             <input
               type="radio"
               className="peer sr-only"
+              aria-describedby={aria["aria-describedby"]}
               aria-invalid={aria["aria-invalid"]}
               value={String(step)}
               {...register(name)}
@@ -51,12 +52,23 @@ const ScaleField = ({ question: q, name, aria }: FieldProps) => {
               )}
             >
               {step}
+              {/* The end labels, said with their steps: those under the
+                  scale are for the eye. */}
+              {step === low && s.optionsLabelLowest && (
+                <span className="sr-only">: {s.optionsLabelLowest}</span>
+              )}
+              {step === high && s.optionsLabelHighest && (
+                <span className="sr-only">: {s.optionsLabelHighest}</span>
+              )}
             </span>
           </label>
         ))}
       </div>
       {(s.optionsLabelLowest || s.optionsLabelHighest) && (
-        <div className="flex justify-between gap-4 text-sm text-muted-foreground">
+        <div
+          aria-hidden="true"
+          className="flex justify-between gap-4 text-sm text-muted-foreground"
+        >
           <span>
             {low}: {s.optionsLabelLowest}
           </span>
