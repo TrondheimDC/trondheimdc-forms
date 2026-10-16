@@ -3,7 +3,7 @@ import { encode } from "uqr"
 // A form's link as a QR code in TDC's look, for posters, slides and chat:
 // round dots, the TDC wordmark in the middle, and the three corner squares
 // drawn as the app icon's checkboxes, two of them ticked. Built as an SVG
-// string, in the browser for the share page (/{slug}/qr, /s/{hash}/qr).
+// string, in the browser, for the share and poster pages.
 //
 // What keeps it scannable (checked with zxing-cpp, down to 120 px):
 // - Error correction H, so the hole under the wordmark (about 5% of the

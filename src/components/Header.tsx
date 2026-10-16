@@ -13,7 +13,7 @@ export const Header = () => {
   const { user, logout } = useSession()
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-49 h-16 w-full border-b border-border bg-background/90 backdrop-blur-md">
+    <header className="print:hidden fixed left-0 right-0 top-0 z-49 h-16 w-full border-b border-border bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex h-full max-w-3xl items-center justify-between px-4 sm:px-6">
         {/* There is no front page here (/ is a 404), so the mark goes home
             to trondheimdc.no. */}

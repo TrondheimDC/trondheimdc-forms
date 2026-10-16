@@ -859,3 +859,11 @@ input:checked + .scale-step {
     display: none;
   }
 }
+
+/* Printing a poster (src/components/Poster.tsx): its sheet is the whole
+   page, so no margins from the browser. */
+@media print {
+  @page {
+    margin: 0;
+  }
+}

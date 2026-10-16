@@ -21,7 +21,7 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
       <main
         id="main-content"
         tabIndex={-1}
-        className="flex flex-1 flex-col pt-16 outline-none"
+        className="flex flex-1 flex-col pt-16 outline-none print:pt-0"
       >
         {children}
       </main>

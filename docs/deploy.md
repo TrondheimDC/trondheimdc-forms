@@ -88,7 +88,8 @@ curl -sI https://forms.trondheimdc.no | head -1                                 
 curl -sI https://forms.trondheimdc.no/og.png | grep -i ^content-type             # image/png
 curl -sI https://forms.trondheimdc.no/example/og.png | grep -i ^content-type    # image/png
 curl -sI https://forms.trondheimdc.no/s/<hash> | head -1                         # 200 (s.html)
-curl -sI https://forms.trondheimdc.no/s/<hash>/qr | head -1                      # 200 (s/qr.html)
+curl -sI https://forms.trondheimdc.no/s/<hash>/share | head -1                   # 200 (s/share.html)
+curl -sI https://forms.trondheimdc.no/s/<hash>/poster | head -1                  # 200 (s/poster.html)
 curl -sI https://forms.trondheimdc.no/finnes-ikke | head -1                      # 404
 curl -s -H 'OCS-APIRequest: true' https://forms.trondheimdc.no/apps/forms/s/<public hash> | grep -c initial-state-forms-form   # 1
 curl -sI -H 'OCS-APIRequest: true' https://forms.trondheimdc.no/ocs/v2.php/cloud/user | head -1   # 404 (login parked; 401 with it on)

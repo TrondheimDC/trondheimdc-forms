@@ -4,8 +4,8 @@ import { QrShare } from "@/components/QrShare"
 import { copy } from "@/copy"
 import { configForm, configForms } from "@/lib/config"
 
-// A named form's QR code, /{slug}/qr: add /qr to the form's link to get it.
-// Drawn in the browser from the link, so it's in the page from the start.
+// A named form's QR code, /{slug}/share: add /share to the form's link to
+// get it. Drawn from the link, so it's in the page from the start.
 export const dynamicParams = false
 
 export const generateStaticParams = () =>
@@ -19,12 +19,12 @@ export const generateMetadata = async ({
   const form = configForm((await params).slug)
   if (!form) return {}
   return {
-    title: copy.qr.pageTitle({ title: form.title }),
+    title: copy.share.pageTitle({ title: form.title }),
     robots: { index: false },
   }
 }
 
-export default async function FormQrPage({ params }: Props) {
+export default async function FormSharePage({ params }: Props) {
   const form = configForm((await params).slug)
   if (!form) notFound()
 

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 
 // The share page's QR code (src/lib/qr.ts) and what to do with it: download
 // it for a poster or slide, copy it into a chat, or share it from a phone.
-// `path` is null until the page knows it (/s/{hash}/qr reads it from the
+// `path` is null until the page knows it (/s/{hash}/share reads it from the
 // address), and the code's square is held meanwhile, as is the title's line.
 export const QrShare = ({
   path,
@@ -46,7 +46,7 @@ export const QrShare = ({
     action().then(setStatus, (error: unknown) => {
       // Closing the share sheet isn't a failure.
       if (error instanceof DOMException && error.name === "AbortError") return
-      setStatus(copy.qr.failed)
+      setStatus(copy.share.failed)
     })
   }
 
@@ -74,12 +74,12 @@ export const QrShare = ({
     await navigator.clipboard.write([
       new ClipboardItem({ "image/png": qrPng(svg) }),
     ])
-    return copy.qr.copiedImage
+    return copy.share.copiedImage
   }
   const copyLink = async () => {
     if (!link) return null
     await navigator.clipboard.writeText(link)
-    return copy.qr.copiedLink
+    return copy.share.copiedLink
   }
   const share = async () => {
     if (!svg || !link) return null
@@ -98,10 +98,10 @@ export const QrShare = ({
     <section className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
       <div className="flex w-full max-w-md flex-col items-center text-center">
         <p className="mb-3 font-display text-sm text-muted-foreground">
-          {copy.qr.kicker}
+          {copy.share.kicker}
         </p>
         <h1 className={cn("text-4xl", title === null && "invisible")}>
-          {title === null ? copy.qr.kicker : (title ?? copy.qr.untitled)}
+          {title === null ? copy.share.kicker : (title ?? copy.share.untitled)}
         </h1>
 
         <div className="mt-8 aspect-square w-full max-w-80">
@@ -109,7 +109,7 @@ export const QrShare = ({
             // biome-ignore lint/performance/noImgElement: a data: URL drawn here, nothing for next/image to do
             <img
               src={qrDataUrl(svg)}
-              alt={copy.qr.alt({ link })}
+              alt={copy.share.alt({ link })}
               className="size-full"
             />
           ) : (
@@ -121,7 +121,7 @@ export const QrShare = ({
         </p>
 
         <fieldset className="mt-6 flex flex-col items-center gap-2">
-          <legend className="sr-only">{copy.qr.lookLabel}</legend>
+          <legend className="sr-only">{copy.share.lookLabel}</legend>
           <div className="flex gap-2">
             {(["green", "black"] as const).map((option) => (
               <Button
@@ -131,19 +131,19 @@ export const QrShare = ({
                 aria-pressed={look === option}
                 onClick={() => setLook(option)}
               >
-                {copy.qr[option]}
+                {copy.share[option]}
               </Button>
             ))}
           </div>
           <p className="min-h-5 text-sm text-muted-foreground">
-            {look === "black" ? copy.qr.blackHint : null}
+            {look === "black" ? copy.share.blackHint : null}
           </p>
         </fieldset>
 
         <div className="mt-6 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center">
           {canShare && (
             <Button onClick={attempt(share)} disabled={!svg}>
-              {copy.qr.share}
+              {copy.share.share}
             </Button>
           )}
           <Button
@@ -151,22 +151,26 @@ export const QrShare = ({
             onClick={attempt(png)}
             disabled={!svg}
           >
-            {copy.qr.png}
+            {copy.share.png}
           </Button>
           <Button variant="outline" onClick={attempt(svgFile)} disabled={!svg}>
-            {copy.qr.svg}
+            {copy.share.svg}
           </Button>
           <Button
             variant="outline"
             onClick={attempt(copyImage)}
             disabled={!svg}
           >
-            {copy.qr.copyImage}
+            {copy.share.copyImage}
           </Button>
           <Button variant="outline" onClick={attempt(copyLink)} disabled={!svg}>
-            {copy.qr.copyLink}
+            {copy.share.copyLink}
           </Button>
         </div>
+
+        <Button asChild variant="link" className="mt-8">
+          <a href={path ? `${path}/poster` : undefined}>{copy.share.poster}</a>
+        </Button>
       </div>
 
       <p

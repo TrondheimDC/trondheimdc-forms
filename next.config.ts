@@ -5,8 +5,9 @@ import forms from "./forms.config"
 // The build is a static export (output: "export"), served by nginx, which
 // also forwards the Nextcloud paths (docs/nginx-forms.trondheimdc.no.conf). A
 // static export refuses rewrites even in dev, so dev skips the export and
-// does nginx's rewrites itself: /s/{hash} → s.html, /s/{hash}/qr →
-// s/qr.html, and the Nextcloud paths public forms need. nginx's other rules
+// does nginx's rewrites itself: /s/{hash} → s.html, /s/{hash}/share and
+// /poster → s/share.html and s/poster.html, and the Nextcloud paths public
+// forms need. nginx's other rules
 // (methods, sandboxing Nextcloud's HTML) are production's; dev only needs
 // the paths to work.
 export default function nextConfig(phase: string): NextConfig {
@@ -34,7 +35,8 @@ export default function nextConfig(phase: string): NextConfig {
       ...shared,
       rewrites: async () => [
         { source: "/s/:hash", destination: "/s" },
-        { source: "/s/:hash/qr", destination: "/s/qr" },
+        { source: "/s/:hash/share", destination: "/s/share" },
+        { source: "/s/:hash/poster", destination: "/s/poster" },
         // A public form's share page (src/lib/share-page.ts).
         {
           source: "/apps/forms/s/:hash",

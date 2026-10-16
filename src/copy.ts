@@ -173,10 +173,10 @@ export const copy = {
     body: "Try again. If that doesn't help, tell connect@trondheimdc.no.",
     retry: "Try again",
   },
-  qr: {
-    kicker: "QR code",
+  share: {
+    kicker: "Share",
     untitled: "Share this form",
-    pageTitle: ({ title }: { title: string }) => `QR code for ${title}`,
+    pageTitle: ({ title }: { title: string }) => `Share ${title}`,
     alt: ({ link }: { link: string }) => `QR code for ${link}`,
     lookLabel: "Colour",
     green: "Green",
@@ -190,6 +190,19 @@ export const copy = {
     copiedImage: "Image copied.",
     copiedLink: "Link copied.",
     failed: "That didn't work here. Try downloading it instead.",
+    poster: "Make a poster",
+  },
+  poster: {
+    pageTitle: ({ title }: { title: string }) => `Poster for ${title}`,
+    untitled: "Tell us what you think",
+    scan: "Scan to answer",
+    orGoTo: "or go to",
+    paperLabel: "Paper",
+    white: "White",
+    black: "Black",
+    print: "Print",
+    hint: "Fits A4 and A3. Print it, or save it as a PDF from the print dialog.",
+    back: "Back to sharing",
   },
   admin: {
     title: "Your forms",
