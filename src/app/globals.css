@@ -411,6 +411,9 @@
      view, such as a focused field. */
   html {
     scroll-padding-top: 6rem;
+    /* Keep the scrollbar's space whether or not the page scrolls, so the
+       page doesn't jump sideways when the form loads in. */
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground font-sans;

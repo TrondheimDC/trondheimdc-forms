@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { copy } from "@/copy"
@@ -82,23 +83,14 @@ function MonitorIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export function ThemeToggle() {
+  // Prerendered as it is: the icon follows the theme in CSS, and the theme
+  // itself is only read by the menu, which isn't rendered until it opens.
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon" className="h-9 w-9">
-        <span className="sr-only">{copy.menu.themeLabel}</span>
-      </Button>
-    )
-  }
 
   return (
-    <DropdownMenu>
+    // Not modal: a modal menu locks the page's scroll, which takes the
+    // scrollbar away and moves the whole layout by its width.
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -111,36 +103,20 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px]">
-        <DropdownMenuItem
-          onClick={() => setTheme("light")}
-          className="flex items-center justify-between"
-        >
-          <span className="flex items-center gap-2">
+        <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+          <DropdownMenuRadioItem value="light">
             <SunIcon />
             {copy.menu.themeLight}
-          </span>
-          {theme === "light" && <span className="text-primary">•</span>}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme("dark")}
-          className="flex items-center justify-between"
-        >
-          <span className="flex items-center gap-2">
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="dark">
             <MoonIcon />
             {copy.menu.themeDark}
-          </span>
-          {theme === "dark" && <span className="text-primary">•</span>}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme("system")}
-          className="flex items-center justify-between"
-        >
-          <span className="flex items-center gap-2">
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="system">
             <MonitorIcon />
             {copy.menu.themeSystem}
-          </span>
-          {theme === "system" && <span className="text-primary">•</span>}
-        </DropdownMenuItem>
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

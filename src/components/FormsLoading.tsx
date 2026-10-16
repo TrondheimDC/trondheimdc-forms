@@ -2,11 +2,11 @@
 // checklist), its boxes ticking one after another, over a label that
 // breathes. Checkin's app-loading screen, with the checklist doing the work
 // its printer does there. Fades in after a moment, so a quick load never
-// flashes it.
+// flashes it. It fills the screen under the header, as the form will, so
+// the footer is already out of view and doesn't jump when the form comes.
 export const FormsLoading = ({ label }: { label: string }) => (
   <div
-    className="forms-loading flex flex-1 flex-col items-center justify-center px-4 py-16"
-    aria-busy="true"
+    className="forms-loading flex min-h-[calc(100dvh-4rem)] flex-1 flex-col items-center justify-center px-4 py-16"
     aria-live="polite"
   >
     <svg

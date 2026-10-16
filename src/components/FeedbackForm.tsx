@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { motion } from "motion/react"
-import { useEffect, useRef, useState } from "react"
+import { type ComponentProps, useEffect, useRef, useState } from "react"
 import { FormProvider, useForm, useFormState, useWatch } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { copy } from "@/copy"
@@ -475,24 +475,33 @@ const ProblemCount = () => {
   )
 }
 
-// A thin bar under the header that fills as questions are answered.
+// The progress bar's track, a thin line under the header. FormLoader shows
+// it empty while the form loads, so it is there from the first paint and
+// only its fill comes in with the form.
+export const ProgressTrack = (props: ComponentProps<"div">) => (
+  <div
+    {...props}
+    className="fixed inset-x-0 top-16 z-40 h-[3px] bg-border/60"
+  />
+)
+
+// Fills as questions are answered.
 const Progress = ({ questions }: { questions: QuestionData[] }) => {
   const answered = useAnswered(questions)
   const total = questions.length
   return (
-    <div
+    <ProgressTrack
       role="progressbar"
       aria-label={copy.form.progressLabel}
       aria-valuemin={0}
       aria-valuemax={total}
       aria-valuenow={answered}
       aria-valuetext={copy.form.progress({ answered, total })}
-      className="fixed inset-x-0 top-16 z-40 h-[3px] bg-border/60"
     >
       <div
         className="form-progress h-full origin-left bg-primary"
         style={{ scale: `${total ? answered / total : 0} 1` }}
       />
-    </div>
+    </ProgressTrack>
   )
 }

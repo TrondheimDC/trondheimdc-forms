@@ -7,7 +7,7 @@ import { copy } from "@/copy"
 import { LOGIN_ENABLED, NEXTCLOUD_URL } from "@/lib/config"
 import { loadForm } from "@/lib/load"
 import { startLogin } from "@/lib/session"
-import { FeedbackForm } from "./FeedbackForm"
+import { FeedbackForm, ProgressTrack } from "./FeedbackForm"
 import { FormsLoading } from "./FormsLoading"
 import {
   ClosedIllustration,
@@ -56,7 +56,13 @@ export const FormLoader = ({
     enabled: hash !== null,
   })
 
-  if (!loaded || isFetching) return <FormsLoading label={copy.load.loading} />
+  if (!loaded || isFetching)
+    return (
+      <>
+        <ProgressTrack aria-hidden="true" />
+        <FormsLoading label={copy.load.loading} />
+      </>
+    )
 
   switch (loaded.kind) {
     case "form":
