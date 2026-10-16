@@ -1,6 +1,7 @@
 import sample from "../data/sample-form.json"
 import { NEXTCLOUD_URL as NEXTCLOUD } from "./config"
-import { fromNextcloud, type PublicForm, type RawPublicForm } from "./forms"
+import { fromNextcloud, type PublicForm, rawFormSchema } from "./forms"
+import { ocs } from "./ocs"
 import { isLoggedIn, ncFetch, OCS_HEADERS } from "./session"
 import {
   formHashPattern,
@@ -8,6 +9,7 @@ import {
   parseSharePage,
   shareHashPattern,
 } from "./share-page"
+import * as z from "./zod"
 
 export const SAMPLE_HASH = "sample"
 
@@ -32,8 +34,7 @@ export const loadForm = async (hash: string): Promise<Loaded> => {
     return {
       kind: "form",
       form: {
-        // JSON imports widen "short" to string.
-        ...fromNextcloud(sample as RawPublicForm, SAMPLE_HASH, NEXTCLOUD),
+        ...fromNextcloud(rawFormSchema.parse(sample), SAMPLE_HASH, NEXTCLOUD),
         sample: true,
       },
     }
@@ -71,12 +72,15 @@ const loadShared = async (shareHash: string): Promise<Loaded> => {
     case "unreadable":
       console.error(
         "Could not read the form from Nextcloud's share page. See src/lib/share-page.ts.",
+        page.reason,
       )
       return { kind: "failed" }
     default:
       return page
   }
 }
+
+const formResponseSchema = ocs(rawFormSchema)
 
 const loadForUser = async (formHash: string): Promise<Loaded> => {
   if (!isLoggedIn()) return { kind: "login" }
@@ -92,6 +96,7 @@ const loadForUser = async (formHash: string): Promise<Loaded> => {
   if (page.kind === "unreadable") {
     console.error(
       "Could not read the form id from Nextcloud's Forms page. See src/lib/share-page.ts.",
+      page.reason,
     )
     return { kind: "failed" }
   }
@@ -100,11 +105,18 @@ const loadForUser = async (formHash: string): Promise<Loaded> => {
   if (res.status === 401) return { kind: "login" }
   if (res.status === 403 || res.status === 404) return { kind: "forbidden" }
   if (!res.ok) return { kind: "failed" }
-  const body = (await res.json()) as { ocs: { data: RawPublicForm } }
+  const body = formResponseSchema.safeParse(await res.json())
+  if (!body.success) {
+    console.error(
+      "Could not read the form from the Forms API.",
+      z.prettifyError(body.error),
+    )
+    return { kind: "failed" }
+  }
   return {
     kind: "form",
     form: fromNextcloud(
-      body.ocs.data,
+      body.data.ocs.data,
       "",
       `${NEXTCLOUD}/apps/forms/${formHash}`,
     ),

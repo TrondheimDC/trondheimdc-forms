@@ -1,5 +1,11 @@
 "use client"
 
+import {
+  queryOptions,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { Command } from "cmdk"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
@@ -9,62 +15,49 @@ import {
 import { StatusScreen } from "@/components/StatusScreen"
 import { Button } from "@/components/ui/button"
 import { copy } from "@/copy"
-import { type AdminForm, linkFor, loadAdminForms, shareHash } from "@/lib/admin"
+import {
+  type AdminForm,
+  LoginRequired,
+  linkFor,
+  loadAdminForms,
+  shareHash,
+} from "@/lib/admin"
 import { NEXTCLOUD_URL } from "@/lib/config"
 import { isLoggedIn, startLogin } from "@/lib/session"
 import { cn } from "@/lib/utils"
 
-type State =
-  | { kind: "loading" }
-  | { kind: "login" }
-  | { kind: "failed" }
-  | { kind: "ready"; forms: AdminForm[] }
+const formsQuery = queryOptions({
+  queryKey: ["admin", "forms"],
+  queryFn: () =>
+    isLoggedIn() ? loadAdminForms() : Promise.reject(new LoginRequired()),
+})
+
+const shareHashQuery = (id: number) =>
+  queryOptions({
+    queryKey: ["admin", "shareHash", id],
+    queryFn: () => shareHash(id),
+  })
 
 // The forms you own or were given in Nextcloud, as a command palette: type
 // to filter, Enter copies the link to share.
 export const AdminContent = () => {
-  const [state, setState] = useState<State>({ kind: "loading" })
+  const queryClient = useQueryClient()
+  const list = useQuery(formsQuery)
+  // Which ones have a public link: filled in as they arrive.
+  const hashes = useQueries({
+    queries: (list.data ?? []).map((f) => shareHashQuery(f.id)),
+  })
+  const forms = list.data?.map(
+    (f, i): AdminForm => ({ ...f, publicHash: hashes[i]?.data }),
+  )
   const [copied, setCopied] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (!isLoggedIn()) {
-      setState({ kind: "login" })
-      return
-    }
-    loadAdminForms()
-      .then((forms) => {
-        setState({ kind: "ready", forms })
-        // Which ones have a public link: one request per form, a few at a
-        // time, filled in as they arrive.
-        const queue = [...forms]
-        const worker = async () => {
-          for (let f = queue.shift(); f; f = queue.shift()) {
-            const hash = await shareHash(f.id)
-            const id = f.id
-            setState((s) =>
-              s.kind === "ready"
-                ? {
-                    ...s,
-                    forms: s.forms.map((x) =>
-                      x.id === id ? { ...x, publicHash: hash } : x,
-                    ),
-                  }
-                : s,
-            )
-          }
-        }
-        void Promise.all([worker(), worker(), worker(), worker()])
-      })
-      .catch((error: Error) =>
-        setState({ kind: error.message === "login" ? "login" : "failed" }),
-      )
-  }, [])
 
   // ⌘K / Ctrl+K or / jumps to the search from anywhere on the page.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const inField = (e.target as HTMLElement).closest("input, textarea")
+      const inField =
+        e.target instanceof Element && e.target.closest("input, textarea")
       if (
         (e.key === "k" && (e.metaKey || e.ctrlKey)) ||
         (e.key === "/" && !inField)
@@ -77,15 +70,15 @@ export const AdminContent = () => {
     return () => document.removeEventListener("keydown", onKey)
   }, [])
 
-  const copyLink = useCallback(async (form: AdminForm) => {
-    const resolved =
-      form.publicHash === undefined
-        ? { ...form, publicHash: await shareHash(form.id) }
-        : form
-    const link = linkFor(resolved)
-    await navigator.clipboard.writeText(link)
-    setCopied(link)
-  }, [])
+  const copyLink = useCallback(
+    async (form: AdminForm) => {
+      const publicHash = await queryClient.fetchQuery(shareHashQuery(form.id))
+      const link = linkFor({ ...form, publicHash })
+      await navigator.clipboard.writeText(link)
+      setCopied(link)
+    },
+    [queryClient],
+  )
 
   useEffect(() => {
     if (!copied) return
@@ -93,7 +86,7 @@ export const AdminContent = () => {
     return () => clearTimeout(timer)
   }, [copied])
 
-  if (state.kind === "login") {
+  if (list.error instanceof LoginRequired) {
     return (
       <StatusScreen
         illustration={<LoginIllustration />}
@@ -103,7 +96,7 @@ export const AdminContent = () => {
       />
     )
   }
-  if (state.kind === "failed") {
+  if (list.error && !list.isFetching) {
     return (
       <StatusScreen
         tone="danger"
@@ -111,7 +104,7 @@ export const AdminContent = () => {
         title={copy.admin.failedTitle}
         body={copy.admin.failedBody}
         actions={
-          <Button onClick={() => window.location.reload()}>
+          <Button onClick={() => void list.refetch()}>
             {copy.admin.retry}
           </Button>
         }
@@ -145,7 +138,7 @@ export const AdminContent = () => {
         </div>
 
         <Command.List className="max-h-[60vh] overflow-y-auto p-2">
-          {state.kind === "loading" ? (
+          {!forms ? (
             <Command.Loading>
               <div className="space-y-2 p-2" aria-busy="true">
                 {[0, 1, 2].map((i) => (
@@ -159,7 +152,7 @@ export const AdminContent = () => {
           ) : (
             <>
               <Command.Empty className="px-3 py-8 text-center text-muted-foreground">
-                {state.forms.length === 0 ? (
+                {forms.length === 0 ? (
                   <span>
                     {copy.admin.none}{" "}
                     <a
@@ -174,17 +167,17 @@ export const AdminContent = () => {
                 )}
               </Command.Empty>
               {(["owned", "shared"] as const).map((group) => {
-                const forms = state.forms.filter(
+                const inGroup = forms.filter(
                   (f) => f.owned === (group === "owned"),
                 )
-                if (forms.length === 0) return null
+                if (inGroup.length === 0) return null
                 return (
                   <Command.Group
                     key={group}
                     heading={copy.admin[group]}
                     className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-muted-foreground"
                   >
-                    {forms.map((f) => (
+                    {inGroup.map((f) => (
                       <Row key={f.id} form={f} onCopy={copyLink} />
                     ))}
                   </Command.Group>

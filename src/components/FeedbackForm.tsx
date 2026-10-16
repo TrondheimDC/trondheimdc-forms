@@ -1,18 +1,28 @@
 "use client"
 
-import { AnimatePresence, motion } from "motion/react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
+import { motion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
+import { FormProvider, useForm, useFormState, useWatch } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { copy } from "@/copy"
+import type { Answer } from "@/lib/answers"
 import {
-  type Draft,
-  emptyDraft,
-  isDraft,
-  toSubmission,
-  validate,
-} from "@/lib/answers"
-import { isOpen, type PublicForm, unsupported } from "@/lib/forms"
+  isOpen,
+  type PublicForm,
+  type Question as QuestionData,
+  unsupported,
+} from "@/lib/forms"
 import { SubmitError, submit } from "@/lib/submit"
+import {
+  emptyValues,
+  fieldName,
+  formSchema,
+  restoreValues,
+  status,
+  toSubmission,
+} from "@/questions"
 import {
   ClosedIllustration,
   DoneIllustration,
@@ -22,12 +32,6 @@ import { Markdown } from "./Markdown"
 import { Question } from "./Question"
 import { useSession } from "./Session"
 import { StatusScreen } from "./StatusScreen"
-
-type Status =
-  | { kind: "filling" }
-  | { kind: "sending" }
-  | { kind: "sent" }
-  | { kind: "failed"; message: string }
 
 // Remembers a sent answer in this browser, for forms that take one answer per
 // person: as Nextcloud says for a logged-in user, or as `oneAnswer` in
@@ -39,12 +43,12 @@ const sentKey = (form: PublicForm) => `tdc-forms:sent:${form.id}`
 // shared machine the next person shouldn't find them.
 const draftKey = (form: PublicForm) => `tdc-forms:draft:${form.id}`
 
-const readDraft = (form: PublicForm): Draft | null => {
+const readDraft = (form: PublicForm) => {
   try {
-    const saved: unknown = JSON.parse(
-      sessionStorage.getItem(draftKey(form)) ?? "null",
+    return restoreValues(
+      form.questions,
+      JSON.parse(sessionStorage.getItem(draftKey(form)) ?? "null"),
     )
-    return isDraft(saved) ? saved : null
   } catch {
     return null
   }
@@ -60,18 +64,23 @@ const firstControl = (question: Element | null) =>
     "input:checked:not([type=checkbox]), input:not([disabled]), select, textarea, button:not([disabled])",
   )
 
+// Sending an answer, and what happens once it is in.
+const useSending = (form: PublicForm) =>
+  useMutation({
+    mutationFn: (answers: Record<string, Answer>) => submit(form, answers),
+    onSuccess: () => {
+      if (!form.submitMultiple && !form.sample) {
+        localStorage.setItem(sentKey(form), new Date().toISOString())
+      }
+      sessionStorage.removeItem(draftKey(form))
+      window.scrollTo({ top: 0 })
+    },
+  })
+
+type Sending = ReturnType<typeof useSending>
+
+// Which screen: the form, or why not, or thanks once it is sent.
 export const FeedbackForm = ({ form }: { form: PublicForm }) => {
-  const { user } = useSession()
-  const [restored] = useState(() => readDraft(form))
-  const [draft, setDraft] = useState<Draft>(() => restored ?? emptyDraft())
-  const [showRestored, setShowRestored] = useState(restored !== null)
-  const [status, setStatus] = useState<Status>({ kind: "filling" })
-  // Problems show once someone has left a question, so nobody is told off
-  // mid-sentence, and only after a try at submitting for unanswered required
-  // questions. Once shown, a problem goes away as soon as it is fixed.
-  const [left, setLeft] = useState<Record<number, boolean>>({})
-  const [showProblems, setShowProblems] = useState(false)
-  const formRef = useRef<HTMLFormElement>(null)
   // Only ever rendered in the browser, after FormLoader has fetched the
   // form, so the clock and storage can be read straight away.
   const [open] = useState(() => isOpen(form, Date.now() / 1000))
@@ -84,129 +93,12 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
         !form.sample &&
         localStorage.getItem(sentKey(form)) !== null),
   )
+  // Each round of answering is a new form: "Start over" and "Send another
+  // answer" begin one, empty.
+  const [round, setRound] = useState(0)
+  const sending = useSending(form)
 
-  const problems = validate(form.questions, draft)
-  const problemCount = Object.keys(problems).length
-  const answers = toSubmission(form.questions, draft)
-  // Answered, and good to send as it is.
-  const done = (id: number) => !!answers[String(id)] && !problems[id]
-  const answered = form.questions.filter((q) => done(q.id)).length
-  const started = Object.keys(answers).length > 0
-
-  const shownProblem = (id: number) => {
-    const problem = problems[id]
-    if (showProblems) return problem
-    return left[id] && problem?.kind !== "required" ? problem : undefined
-  }
-
-  useEffect(() => {
-    if (status.kind === "sent") return
-    if (!started) sessionStorage.removeItem(draftKey(form))
-    else sessionStorage.setItem(draftKey(form), JSON.stringify(draft))
-  }, [form, draft, started, status.kind])
-
-  const update =
-    <K extends keyof Draft>(key: K, id: number) =>
-    (value: Draft[K][number]) =>
-      setDraft((d) => ({ ...d, [key]: { ...d[key], [id]: value } }))
-
-  const onSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (status.kind === "sending") return
-    if (problemCount > 0) {
-      setShowProblems(true)
-      const invalid = form.questions
-        .filter((q) => problems[q.id])
-        .map((q) => document.getElementById(`q-${q.id}`))
-      // Focus the first problem without the browser's jump, then glide to
-      // it, and give every card with a problem a shake.
-      firstControl(invalid[0] ?? null)?.focus({ preventScroll: true })
-      invalid[0]?.scrollIntoView({
-        behavior: reducedMotion() ? "auto" : "smooth",
-        block: "center",
-      })
-      if (!reducedMotion()) {
-        for (const card of invalid) {
-          card?.animate(
-            [
-              { translate: "0" },
-              { translate: "-6px" },
-              { translate: "5px" },
-              { translate: "-3px" },
-              { translate: "2px" },
-              { translate: "0" },
-            ],
-            { duration: 420, easing: "ease-out" },
-          )
-        }
-      }
-      return
-    }
-
-    setStatus({ kind: "sending" })
-    try {
-      await submit(form, toSubmission(form.questions, draft))
-      if (!form.submitMultiple && !form.sample) {
-        localStorage.setItem(sentKey(form), new Date().toISOString())
-      }
-      sessionStorage.removeItem(draftKey(form))
-      // The draft it was about is sent: a new answer starts fresh.
-      setShowRestored(false)
-      setStatus({ kind: "sent" })
-      window.scrollTo({ top: 0 })
-    } catch (error) {
-      const message =
-        error instanceof SubmitError && error.message
-          ? copy.form.errorServer({ message: error.message })
-          : copy.form.errorGeneric
-      setStatus({ kind: "failed", message })
-    }
-  }
-
-  // Enter in a one-line field goes on to the next question, as on a phone's
-  // "next" key, rather than submitting a form that is half done. The last
-  // one lands on the submit button.
-  const onKeyDown = (event: React.KeyboardEvent<HTMLFormElement>) => {
-    const target = event.target as HTMLElement
-    if (
-      event.key !== "Enter" ||
-      event.nativeEvent.isComposing ||
-      !(target instanceof HTMLInputElement) ||
-      ["checkbox", "radio", "submit", "button", "color"].includes(target.type)
-    )
-      return
-    event.preventDefault()
-    const cards = [
-      ...(formRef.current?.querySelectorAll(".question-card") ?? []),
-    ]
-    const current = cards.findIndex((card) => card.contains(target))
-    const next = firstControl(cards[current + 1] ?? null)
-    if (next) {
-      next.focus({ preventScroll: true })
-      next.closest(".question-card")?.scrollIntoView({
-        behavior: reducedMotion() ? "auto" : "smooth",
-        block: "nearest",
-      })
-    } else {
-      formRef.current?.querySelector<HTMLElement>("[type=submit]")?.focus()
-    }
-  }
-
-  const header = (
-    <header
-      className="form-rise space-y-4"
-      style={{ "--i": 0 } as React.CSSProperties}
-    >
-      <h1>{form.title}</h1>
-      {form.description && (
-        <div className="text-muted-foreground">
-          <Markdown>{form.description}</Markdown>
-        </div>
-      )}
-    </header>
-  )
-
-  if (status.kind === "sent") {
+  if (sending.isSuccess) {
     return (
       <StatusScreen
         illustration={<DoneIllustration />}
@@ -223,10 +115,8 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
             <Button
               variant="outline"
               onClick={() => {
-                setDraft(emptyDraft())
-                setLeft({})
-                setShowProblems(false)
-                setStatus({ kind: "filling" })
+                sending.reset()
+                setRound((r) => r + 1)
               }}
             >
               {copy.form.again}
@@ -275,6 +165,141 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
     )
   }
 
+  return (
+    <Answering
+      key={round}
+      form={form}
+      sending={sending}
+      onStartOver={() => {
+        sessionStorage.removeItem(draftKey(form))
+        setRound((r) => r + 1)
+      }}
+    />
+  )
+}
+
+// The form itself. Nothing here reads the answers or formState while
+// rendering: that would render every question on every keystroke. Each
+// question, the progress and the problem count subscribe to what they show.
+const Answering = ({
+  form,
+  sending,
+  onStartOver,
+}: {
+  form: PublicForm
+  sending: Sending
+  onStartOver: () => void
+}) => {
+  const { user } = useSession()
+  const [restored] = useState(() => readDraft(form))
+  const [resolver] = useState(() => zodResolver(formSchema(form.questions)))
+  const methods = useForm({
+    defaultValues: restored ?? emptyValues(form.questions),
+    resolver,
+    // Every answer is checked as it changes, so a problem can go away as
+    // soon as it is fixed. When one is shown is up to its Question.
+    mode: "onChange",
+    // Focus goes to the first problem in onInvalid, with a glide and a shake.
+    shouldFocusError: false,
+  })
+  const { handleSubmit, subscribe, trigger } = methods
+  const formRef = useRef<HTMLFormElement>(null)
+
+  // A restored draft is checked straight away, so leaving a question shows
+  // what is wrong with it without changing it first.
+  useEffect(() => {
+    if (restored) void trigger()
+  }, [restored, trigger])
+
+  useEffect(
+    () =>
+      subscribe({
+        formState: { values: true },
+        callback: ({ values }) => {
+          const started = form.questions.some(
+            (q) => status(q, values[fieldName(q.id)]) !== "blank",
+          )
+          if (started) {
+            sessionStorage.setItem(draftKey(form), JSON.stringify(values))
+          } else {
+            sessionStorage.removeItem(draftKey(form))
+          }
+        },
+      }),
+    [form, subscribe],
+  )
+
+  const onInvalid = (problems: Record<string, unknown>) => {
+    const invalid = form.questions
+      .filter((q) => problems[fieldName(q.id)])
+      .map((q) => document.getElementById(`q-${q.id}`))
+    // Focus the first problem without the browser's jump, then glide to
+    // it, and give every card with a problem a shake.
+    firstControl(invalid[0] ?? null)?.focus({ preventScroll: true })
+    invalid[0]?.scrollIntoView({
+      behavior: reducedMotion() ? "auto" : "smooth",
+      block: "center",
+    })
+    if (!reducedMotion()) {
+      for (const card of invalid) {
+        card?.animate(
+          [
+            { translate: "0" },
+            { translate: "-6px" },
+            { translate: "5px" },
+            { translate: "-3px" },
+            { translate: "2px" },
+            { translate: "0" },
+          ],
+          { duration: 420, easing: "ease-out" },
+        )
+      }
+    }
+  }
+
+  const onSubmit = handleSubmit((answers) => {
+    if (!sending.isPending)
+      sending.mutate(toSubmission(form.questions, answers))
+  }, onInvalid)
+
+  const failure =
+    sending.error instanceof SubmitError && sending.error.message
+      ? copy.form.errorServer({ message: sending.error.message })
+      : sending.error
+        ? copy.form.errorGeneric
+        : null
+
+  // Enter in a one-line field goes on to the next question, as on a phone's
+  // "next" key, rather than submitting a form that is half done. The last
+  // one lands on the submit button.
+  const onKeyDown = (event: React.KeyboardEvent<HTMLFormElement>) => {
+    const target = event.target
+    if (
+      event.key !== "Enter" ||
+      event.nativeEvent.isComposing ||
+      !(target instanceof HTMLInputElement) ||
+      ["checkbox", "radio", "submit", "button", "color", "file"].includes(
+        target.type,
+      )
+    )
+      return
+    event.preventDefault()
+    const cards = [
+      ...(formRef.current?.querySelectorAll(".question-card") ?? []),
+    ]
+    const current = cards.findIndex((card) => card.contains(target))
+    const next = firstControl(cards[current + 1] ?? null)
+    if (next) {
+      next.focus({ preventScroll: true })
+      next.closest(".question-card")?.scrollIntoView({
+        behavior: reducedMotion() ? "auto" : "smooth",
+        block: "nearest",
+      })
+    } else {
+      formRef.current?.querySelector<HTMLElement>("[type=submit]")?.focus()
+    }
+  }
+
   // Only when the form says to show it: a closing date can be set without.
   const expires =
     form.expires > 0 && form.showExpiration
@@ -285,42 +310,47 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
       : null
 
   return (
-    <form
-      ref={formRef}
-      onSubmit={onSubmit}
-      onKeyDown={onKeyDown}
-      noValidate
-      className="mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-6 sm:py-14"
-    >
-      <Progress answered={answered} total={form.questions.length} />
-
-      {header}
-
-      <div
-        className="form-rise space-y-1 text-sm text-muted-foreground"
-        style={{ "--i": 0 } as React.CSSProperties}
+    <FormProvider {...methods}>
+      <form
+        ref={formRef}
+        onSubmit={onSubmit}
+        onKeyDown={onKeyDown}
+        noValidate
+        className="mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-6 sm:py-14"
       >
-        {form.sample && (
-          <p className="font-semibold text-accent">{copy.form.sample}</p>
-        )}
-        {form.isAnonymous ? (
-          <p>{copy.form.anonymous}</p>
-        ) : (
-          user && <p>{copy.form.answeringAs({ name: user.displayName })}</p>
-        )}
-        {expires && <p>{copy.form.expires({ date: expires })}</p>}
-        {form.questions.some((q) => q.isRequired) && (
-          <p>{copy.form.requiredNote}</p>
-        )}
-      </div>
+        <Progress questions={form.questions} />
 
-      <AnimatePresence initial={false}>
-        {showRestored && (
+        <header className="form-rise space-y-4" style={{ "--i": 0 }}>
+          <h1>{form.title}</h1>
+          {form.description && (
+            <div className="text-muted-foreground">
+              <Markdown>{form.description}</Markdown>
+            </div>
+          )}
+        </header>
+
+        <div
+          className="form-rise space-y-1 text-sm text-muted-foreground"
+          style={{ "--i": 0 }}
+        >
+          {form.sample && (
+            <p className="font-semibold text-accent">{copy.form.sample}</p>
+          )}
+          {form.isAnonymous ? (
+            <p>{copy.form.anonymous}</p>
+          ) : (
+            user && <p>{copy.form.answeringAs({ name: user.displayName })}</p>
+          )}
+          {expires && <p>{copy.form.expires({ date: expires })}</p>}
+          {form.questions.some((q) => q.isRequired) && (
+            <p>{copy.form.requiredNote}</p>
+          )}
+        </div>
+
+        {restored && (
           <motion.div
-            key="restored"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
@@ -330,86 +360,88 @@ export const FeedbackForm = ({ form }: { form: PublicForm }) => {
                 type="button"
                 variant="link"
                 size="sm"
-                onClick={() => {
-                  setDraft(emptyDraft())
-                  setLeft({})
-                  setShowProblems(false)
-                  setShowRestored(false)
-                }}
+                onClick={onStartOver}
               >
                 {copy.form.clearDraft}
               </Button>
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      <div className="space-y-5">
-        {form.questions.map((q, index) => (
-          <Question
-            key={q.id}
-            question={q}
-            index={index}
-            answered={done(q.id)}
-            draft={draft}
-            problem={shownProblem(q.id)}
-            setValues={update("values", q.id)}
-            setOther={update("other", q.id)}
-            setOtherChecked={update("otherChecked", q.id)}
-            onLeave={() =>
-              setLeft((l) => (l[q.id] ? l : { ...l, [q.id]: true }))
-            }
-          />
-        ))}
-      </div>
-
-      <div
-        className="form-rise space-y-4"
-        style={{ "--i": form.questions.length + 1 } as React.CSSProperties}
-      >
-        {/* Kept mounted so screen readers announce the message when it
-            appears, rather than missing a live region added with it. */}
-        <div aria-live="polite" className="empty:hidden">
-          {showProblems && problemCount > 0 && (
-            <p className="font-semibold text-danger">
-              {copy.form.fixErrors({ count: problemCount })}
-            </p>
-          )}
-          {status.kind === "failed" && (
-            <p className="font-semibold text-danger">{status.message}</p>
-          )}
+        <div className="space-y-5">
+          {form.questions.map((q, index) => (
+            <Question key={q.id} form={form} question={q} index={index} />
+          ))}
         </div>
-        <div className="flex flex-col-reverse items-stretch gap-4 sm:flex-row sm:items-center">
-          <Button
-            type="submit"
-            size="lg"
-            aria-disabled={status.kind === "sending" || undefined}
-            className="relative aria-disabled:pointer-events-none"
-          >
-            {/* Both labels take up room, so the button keeps its width. */}
-            <span
-              className={status.kind === "sending" ? "invisible" : undefined}
+
+        <div
+          className="form-rise space-y-4"
+          style={{ "--i": form.questions.length + 1 }}
+        >
+          {/* Kept mounted so screen readers announce the message when it
+              appears, rather than missing a live region added with it. */}
+          <div aria-live="polite" className="empty:hidden">
+            <ProblemCount />
+            {failure && <p className="font-semibold text-danger">{failure}</p>}
+          </div>
+          <div className="flex flex-col-reverse items-stretch gap-4 sm:flex-row sm:items-center">
+            <Button
+              type="submit"
+              size="lg"
+              aria-disabled={sending.isPending || undefined}
+              className="relative aria-disabled:pointer-events-none"
             >
-              {copy.form.submit}
-            </span>
-            {status.kind === "sending" && (
-              <span className="absolute inset-0 flex items-center justify-center gap-3">
-                <span className="submit-spinner" aria-hidden="true" />
-                {copy.form.submitting}
+              {/* Both labels take up room, so the button keeps its width. */}
+              <span className={sending.isPending ? "invisible" : undefined}>
+                {copy.form.submit}
               </span>
-            )}
-          </Button>
-          <p className="font-mono text-xs tabular-nums text-muted-foreground">
-            {copy.form.progress({ answered, total: form.questions.length })}
-          </p>
+              {sending.isPending && (
+                <span className="absolute inset-0 flex items-center justify-center gap-3">
+                  <span className="submit-spinner" aria-hidden="true" />
+                  {copy.form.submitting}
+                </span>
+              )}
+            </Button>
+            <p className="font-mono text-xs tabular-nums text-muted-foreground">
+              <Tally questions={form.questions} />
+            </p>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </FormProvider>
+  )
+}
+
+// How many questions are done. Worked out on every change, but only renders
+// what shows it when the number changes.
+const useAnswered = (questions: QuestionData[]) =>
+  useWatch({
+    compute: (values: Record<string, unknown>) =>
+      questions.filter((q) => status(q, values[fieldName(q.id)]) === "done")
+        .length,
+  })
+
+const Tally = ({ questions }: { questions: QuestionData[] }) => {
+  const answered = useAnswered(questions)
+  return copy.form.progress({ answered, total: questions.length })
+}
+
+// After a try at submitting: how many questions still have a problem.
+const ProblemCount = () => {
+  const { errors, isSubmitted } = useFormState()
+  const count = Object.keys(errors).length
+  if (!isSubmitted || count === 0) return null
+  return (
+    <p className="font-semibold text-danger">
+      {copy.form.fixErrors({ count })}
+    </p>
   )
 }
 
 // A thin bar under the header that fills as questions are answered.
-const Progress = ({ answered, total }: { answered: number; total: number }) => {
+const Progress = ({ questions }: { questions: QuestionData[] }) => {
+  const answered = useAnswered(questions)
+  const total = questions.length
   return (
     <div
       role="progressbar"

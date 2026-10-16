@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react"
+import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 // One screen for every dead end and end state: 404, errors, and a form that
@@ -111,15 +111,13 @@ const Confetti = () => (
         // biome-ignore lint/suspicious/noArrayIndexKey: a fixed list
         key={i}
         className={cn("confetti", p.round && "rounded-full")}
-        style={
-          {
-            "--x": `${p.x}px`,
-            "--y": `${p.y}px`,
-            "--r": `${p.rotate}deg`,
-            animationDelay: `${p.delay}s`,
-            background: p.colour,
-          } as CSSProperties
-        }
+        style={{
+          "--x": `${p.x}px`,
+          "--y": `${p.y}px`,
+          "--r": `${p.rotate}deg`,
+          animationDelay: `${p.delay}s`,
+          background: p.colour,
+        }}
       />
     ))}
   </div>

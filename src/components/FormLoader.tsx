@@ -1,10 +1,11 @@
 "use client"
 
+import { useQuery } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { copy } from "@/copy"
 import { LOGIN_ENABLED, NEXTCLOUD_URL } from "@/lib/config"
-import { type Loaded, loadForm } from "@/lib/load"
+import { loadForm } from "@/lib/load"
 import { startLogin } from "@/lib/session"
 import { FeedbackForm } from "./FeedbackForm"
 import { FormsLoading } from "./FormsLoading"
@@ -28,31 +29,34 @@ export const FormLoader = ({
   shareHash?: string
   oneAnswer?: boolean
 }) => {
-  const [loaded, setLoaded] = useState<Loaded | null>(null)
-  const [hash, setHash] = useState("")
+  // null until read from the address, which only the browser has.
+  const [hash, setHash] = useState<string | null>(null)
   // /auth/callback sends people back with ?login=failed when it didn't take.
   const [loginFailed, setLoginFailed] = useState(false)
 
   useEffect(() => {
     // /s/{hash}: one prerendered page for every hash, nginx maps them all to it.
-    const hash =
-      shareHash ?? window.location.pathname.match(/^\/s\/([^/]+)/)?.[1] ?? ""
-    setHash(hash)
+    setHash(
+      shareHash ?? window.location.pathname.match(/^\/s\/([^/]+)/)?.[1] ?? "",
+    )
     const params = new URLSearchParams(window.location.search)
     if (params.has("login")) {
       setLoginFailed(params.get("login") === "failed")
       window.history.replaceState(null, "", window.location.pathname)
     }
-    let current = true
-    void loadForm(hash).then((result) => {
-      if (current) setLoaded(result)
-    })
-    return () => {
-      current = false
-    }
   }, [shareHash])
 
-  if (!loaded) return <FormsLoading label={copy.load.loading} />
+  const {
+    data: loaded,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["form", hash],
+    queryFn: () => loadForm(hash ?? ""),
+    enabled: hash !== null,
+  })
+
+  if (!loaded || isFetching) return <FormsLoading label={copy.load.loading} />
 
   switch (loaded.kind) {
     case "form":
@@ -84,7 +88,7 @@ export const FormLoader = ({
             ) : (
               // Logging in here is parked: answer it in Nextcloud instead.
               <Button asChild>
-                <a href={`${NEXTCLOUD_URL}/apps/forms/${hash}`}>
+                <a href={`${NEXTCLOUD_URL}/apps/forms/${hash ?? ""}`}>
                   {copy.load.openInNextcloud}
                 </a>
               </Button>
@@ -126,9 +130,7 @@ export const FormLoader = ({
           title={copy.load.failedTitle}
           body={copy.load.failedBody}
           actions={
-            <Button onClick={() => window.location.reload()}>
-              {copy.load.retry}
-            </Button>
+            <Button onClick={() => void refetch()}>{copy.load.retry}</Button>
           }
         />
       )

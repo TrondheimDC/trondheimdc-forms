@@ -1,4 +1,5 @@
-import type { RawPublicForm } from "./forms"
+import { type RawForm, rawFormSchema } from "./forms"
+import * as z from "./zod"
 
 // Nextcloud Forms has no API to read a form by its hash, and none at all to
 // read one anonymously; only to submit.
@@ -14,10 +15,11 @@ import type { RawPublicForm } from "./forms"
 // upgrade breaks the site, this file and its test are where to look.
 
 export type SharePage =
-  | { kind: "form"; form: RawPublicForm }
+  | { kind: "form"; form: RawForm }
   | { kind: "expired" }
   | { kind: "notfound" }
-  | { kind: "unreadable" }
+  // `reason` says what didn't fit, for the console.
+  | { kind: "unreadable"; reason: string }
 
 export const shareHashPattern = /^[a-zA-Z0-9]{1,256}$/
 // A form's own hash (Constants::FORM_HASH_LENGTH is 16 in Forms).
@@ -41,14 +43,16 @@ const readInitialState = (html: string) => {
 export const parseSharePage = (html: string): SharePage => {
   const states = readInitialState(html)
 
-  const form = states.get("form") as RawPublicForm | undefined
-  if (form && typeof form.id === "number" && Array.isArray(form.questions)) {
-    return { kind: "form", form }
+  if (states.has("form")) {
+    const form = rawFormSchema.safeParse(states.get("form"))
+    return form.success
+      ? { kind: "form", form: form.data }
+      : { kind: "unreadable", reason: z.prettifyError(form.error) }
   }
   const renderAs = states.get("renderAs")
   if (renderAs === "expired") return { kind: "expired" }
   if (renderAs === "notfound") return { kind: "notfound" }
-  return { kind: "unreadable" }
+  return { kind: "unreadable", reason: "No form on the page" }
 }
 
 // The logged-in Forms app at /apps/forms/{hash} (PageController::index)
@@ -57,13 +61,18 @@ export const parseSharePage = (html: string): SharePage => {
 export type FormIdPage =
   | { kind: "id"; id: number }
   | { kind: "notfound" }
-  | { kind: "unreadable" }
+  | { kind: "unreadable"; reason: string }
+
+const formIdSchema = z.union([z.number(), z.literal("invalid")])
 
 export const parseFormIdPage = (html: string): FormIdPage => {
-  const id = readInitialState(html).get("formId")
-  if (typeof id === "number") return { kind: "id", id }
-  if (id === "invalid") return { kind: "notfound" }
-  return { kind: "unreadable" }
+  const id = formIdSchema.safeParse(readInitialState(html).get("formId"))
+  if (!id.success) {
+    return { kind: "unreadable", reason: z.prettifyError(id.error) }
+  }
+  return id.data === "invalid"
+    ? { kind: "notfound" }
+    : { kind: "id", id: id.data }
 }
 
 // atob() gives bytes as a binary string; the JSON inside is UTF-8.

@@ -6,13 +6,15 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "lint": "biome check src test scripts forms.config.ts next.config.ts",
+    "lint": "biome check src test scripts forms.config.ts next.config.ts vitest.config.ts",
     "start": "serve out",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "packageManager": "pnpm@10.30.0",
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
+    "@tanstack/react-query": "^5.104.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -23,9 +25,11 @@
     "radix-ui": "^1.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.90.0",
     "react-markdown": "^10.1.0",
     "tailwind-merge": "^2.5.3",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.8",

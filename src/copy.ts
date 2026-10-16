@@ -1,5 +1,3 @@
-import type { Problem } from "@/lib/answers"
-
 // All of the site's own text, in one place. The forms themselves are in
 // whatever language they were written in, in Nextcloud.
 export const copy = {
@@ -67,30 +65,62 @@ export const copy = {
     rankHint: "Drag, or use the arrows.",
     moved: ({ item, position }: { item: string; position: number }) =>
       `“${item}” is now number ${position}.`,
+    cell: ({ row, column }: { row: string; column: string }) =>
+      `${row}: ${column}`,
+    chooseFile: "Choose a file",
+    chooseFiles: "Choose files",
+    uploading: "Uploading …",
+    removeFile: ({ name }: { name: string }) => `Remove “${name}”`,
+    // Forms' file types, by its name for them.
+    fileKinds: new Map([
+      ["image", "images"],
+      ["x-office/document", "documents"],
+      ["x-office/presentation", "presentations"],
+      ["x-office/spreadsheet", "spreadsheets"],
+    ]),
+    fileKindsHint: ({ kinds }: { kinds: string[] }) => {
+      const list =
+        kinds.length > 1
+          ? `${kinds.slice(0, -1).join(", ")} or ${kinds.at(-1)}`
+          : (kinds[0] ?? "")
+      return `${list.charAt(0).toUpperCase()}${list.slice(1)}.`
+    },
+    fileLimitsHint: ({ count, size }: { count: number; size?: string }) => {
+      if (count === 1) return size ? `One file, up to ${size}.` : "One file."
+      if (count > 1)
+        return size
+          ? `Up to ${count} files, ${size} each.`
+          : `Up to ${count} files.`
+      return size ? `Files can be up to ${size} each.` : null
+    },
+    fileTooBig: ({ name, size }: { name: string; size: string }) =>
+      `“${name}” is too big. Files can be up to ${size}.`,
+    tooManyFiles: ({ count }: { count: number }) =>
+      count === 1
+        ? "You can only upload one file."
+        : `You can upload up to ${count} files.`,
+    uploadTooBig: "That file is too big to upload here.",
+    uploadFailed: ({ message }: { message: string }) =>
+      `The upload didn't work: ${message}`,
+    uploadFailedGeneric: "The upload didn't work. Try again in a moment.",
     draftRestored: "We kept the answers you had started on.",
     clearDraft: "Start over",
   },
-  problem: (problem: Problem) => {
-    switch (problem.kind) {
-      case "required":
-        return "This question is required."
-      case "min":
-        return `Choose at least ${problem.count}.`
-      case "max":
-        return `Choose at most ${problem.count}.`
-      case "email":
-        return "Enter a valid email address."
-      case "phone":
-        return "Enter a valid phone number."
-      case "number":
-        return "Enter a number."
-      case "regex":
-        return "The answer is not in the right format."
-      case "range":
-        return "“To” can't be before “From”."
-      case "color":
-        return "Choose a colour."
-    }
+  // What a question shows when its answer won't do, as Forms' own checks
+  // would say it (src/questions).
+  problem: {
+    required: "This question is required.",
+    min: ({ count }: { count: number }) => `Choose at least ${count}.`,
+    max: ({ count }: { count: number }) => `Choose at most ${count}.`,
+    email: "Enter a valid email address.",
+    phone: "Enter a valid phone number.",
+    number: "Enter a number.",
+    regex: "The answer is not in the right format.",
+    range: "“To” can't be before “From”.",
+    color: "Choose a colour.",
+    files: ({ count }: { count: number }) =>
+      count === 1 ? "Upload only one file." : `Upload at most ${count} files.`,
+    uploading: "Wait for the upload to finish.",
   },
   notFound: {
     title: "Page not found",

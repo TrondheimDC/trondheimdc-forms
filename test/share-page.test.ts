@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { fromNextcloud } from "../src/lib/forms"
+import { fromNextcloud, rawFormSchema } from "../src/lib/forms"
 import { parseFormIdPage, parseSharePage } from "../src/lib/share-page"
 
 // What core/templates/layout.initial-state.php writes: base64 of the JSON.
@@ -54,12 +54,59 @@ describe("parseSharePage", () => {
   })
 
   it("says so when the page isn't what it expects", () => {
-    expect(parseSharePage("<html>Login</html>")).toEqual({
-      kind: "unreadable",
-    })
-    expect(parseSharePage(page(state("form", { id: "x" })))).toEqual({
-      kind: "unreadable",
-    })
+    expect(parseSharePage("<html>Login</html>").kind).toBe("unreadable")
+    expect(parseSharePage(page(state("form", { id: "x" }))).kind).toBe(
+      "unreadable",
+    )
+  })
+
+  it("won't half read a form that has changed shape", () => {
+    const broken = {
+      ...form,
+      questions: [{ ...form.questions[0], options: "none", text: 7 }],
+    }
+    const parsed = parseSharePage(page(state("form", broken)))
+    expect(parsed.kind).toBe("unreadable")
+    if (parsed.kind === "unreadable") {
+      expect(parsed.reason).toContain("questions[0].text")
+      expect(parsed.reason).toContain("questions[0].options")
+    }
+  })
+
+  it("keeps a question it can't render, for the link to Nextcloud", () => {
+    const later = {
+      ...form,
+      questions: [{ ...form.questions[0], type: "signature" }],
+    }
+    const parsed = parseSharePage(page(state("form", later)))
+    expect(parsed.kind).toBe("form")
+    if (parsed.kind === "form") {
+      expect(parsed.form.questions?.[0]?.type).toBe("signature")
+    }
+  })
+
+  it("drops a setting it can't read rather than the form", () => {
+    const odd = {
+      ...form,
+      questions: [
+        {
+          ...form.questions[0],
+          extraSettings: { validationType: "text", optionsLimitMin: "2" },
+        },
+      ],
+    }
+    const parsed = parseSharePage(page(state("form", odd)))
+    expect(parsed.kind).toBe("form")
+    if (parsed.kind === "form") {
+      expect(parsed.form.questions?.[0]?.extraSettings).toEqual({})
+    }
+  })
+
+  it("keeps only what the site uses", () => {
+    const parsed = parseSharePage(
+      page(state("form", { ...form, ownerId: "someone", shares: [] })),
+    )
+    expect(parsed.kind === "form" && parsed.form).not.toHaveProperty("ownerId")
   })
 })
 
@@ -77,16 +124,15 @@ describe("parseFormIdPage", () => {
   })
 
   it("says so for a login page instead", () => {
-    expect(parseFormIdPage("<html>Log in</html>")).toEqual({
-      kind: "unreadable",
-    })
+    expect(parseFormIdPage("<html>Log in</html>").kind).toBe("unreadable")
+    expect(parseFormIdPage(page(state("formId", "77"))).kind).toBe("unreadable")
   })
 })
 
 describe("fromNextcloud", () => {
   it("fills defaults and turns PHP's empty [] settings into {}", () => {
     const f = fromNextcloud(
-      form as never,
+      rawFormSchema.parse(form),
       "abc",
       "https://cloud.example/apps/forms/s/abc",
     )
@@ -99,7 +145,7 @@ describe("fromNextcloud", () => {
   // Forms can close a form at a date without showing it.
   it("keeps whether to show the closing date apart from the date", () => {
     const raw = { ...form, expires: 1_800_000_000, showExpiration: false }
-    const f = fromNextcloud(raw as never, "abc", "")
+    const f = fromNextcloud(rawFormSchema.parse(raw), "abc", "")
     expect(f.expires).toBe(1_800_000_000)
     expect(f.showExpiration).toBe(false)
   })
@@ -107,16 +153,22 @@ describe("fromNextcloud", () => {
   // Forms locks "multiple responses" on for these, but stores false.
   it("takes many answers through a public link, whatever is stored", () => {
     const raw = { ...form, submitMultiple: false, isAnonymous: false }
-    expect(fromNextcloud(raw as never, "abc", "").submitMultiple).toBe(true)
+    expect(
+      fromNextcloud(rawFormSchema.parse(raw), "abc", "").submitMultiple,
+    ).toBe(true)
   })
 
   it("takes many answers when anonymous, whatever is stored", () => {
     const raw = { ...form, submitMultiple: false, isAnonymous: true }
-    expect(fromNextcloud(raw as never, "", "").submitMultiple).toBe(true)
+    expect(fromNextcloud(rawFormSchema.parse(raw), "", "").submitMultiple).toBe(
+      true,
+    )
   })
 
   it("keeps one answer per person for a logged-in form that says so", () => {
     const raw = { ...form, submitMultiple: false, isAnonymous: false }
-    expect(fromNextcloud(raw as never, "", "").submitMultiple).toBe(false)
+    expect(fromNextcloud(rawFormSchema.parse(raw), "", "").submitMultiple).toBe(
+      false,
+    )
   })
 })

@@ -1,5 +1,7 @@
 import * as oauth from "oauth4webapi"
 import { NEXTCLOUD_URL, OAUTH_CLIENT_ID } from "./config"
+import { ocs } from "./ocs"
+import * as z from "./zod"
 
 // "Log in with Nextcloud", entirely in the browser, the way regnskap logs in
 // to Fiken: the authorization code comes back to /auth/callback, is
@@ -18,13 +20,20 @@ const TOKEN_KEY = "nextcloud.token"
 const PENDING_KEY = "nextcloud.pending-login"
 const EXPIRY_MARGIN_MS = 60_000
 
-export type User = { id: string; displayName: string }
+// Read back from sessionStorage, so checked rather than trusted: anything
+// else there is no login.
+const storedTokenSchema = z.object({
+  accessToken: z.string().min(1),
+  refreshToken: z.string().min(1),
+  expiresAt: z.number(),
+})
 
-type StoredToken = {
-  accessToken: string
-  refreshToken: string
-  expiresAt: number
-}
+type StoredToken = z.infer<typeof storedTokenSchema>
+
+const pendingLoginSchema = z.object({
+  state: z.string().min(1),
+  returnTo: z.string(),
+})
 
 // nginx only forwards to Nextcloud with this header (see the nginx config).
 export const OCS_HEADERS = {
@@ -35,7 +44,8 @@ export const OCS_HEADERS = {
 const readToken = (): StoredToken | undefined => {
   try {
     const raw = sessionStorage.getItem(TOKEN_KEY)
-    return raw ? (JSON.parse(raw) as StoredToken) : undefined
+    const token = storedTokenSchema.safeParse(raw ? JSON.parse(raw) : null)
+    return token.success ? token.data : undefined
   } catch {
     return undefined
   }
@@ -52,11 +62,12 @@ export const safeReturn = (path: unknown) =>
 // The OAuth protocol is oauth4webapi's. Nextcloud has no discovery, so its
 // endpoints are given here. The token endpoint is this site's /oauth/token,
 // where nginx adds the client secret: the browser sends no client auth.
-const server = (): oauth.AuthorizationServer => ({
-  issuer: NEXTCLOUD_URL,
-  authorization_endpoint: `${NEXTCLOUD_URL}/index.php/apps/oauth2/authorize`,
-  token_endpoint: new URL("/oauth/token", location.origin).href,
-})
+const server = () =>
+  ({
+    issuer: NEXTCLOUD_URL,
+    authorization_endpoint: `${NEXTCLOUD_URL}/index.php/apps/oauth2/authorize`,
+    token_endpoint: new URL("/oauth/token", location.origin).href,
+  }) satisfies oauth.AuthorizationServer
 const client: oauth.Client = { client_id: OAUTH_CLIENT_ID }
 const clientAuth = oauth.None()
 const tokenOptions = () => ({
@@ -84,9 +95,12 @@ export const startLogin = () => {
   const state = oauth.generateRandomState()
   sessionStorage.setItem(
     PENDING_KEY,
-    JSON.stringify({ state, returnTo: safeReturn(window.location.pathname) }),
+    JSON.stringify({
+      state,
+      returnTo: safeReturn(window.location.pathname),
+    } satisfies z.infer<typeof pendingLoginSchema>),
   )
-  const url = new URL(server().authorization_endpoint as string)
+  const url = new URL(server().authorization_endpoint)
   url.search = new URLSearchParams({
     response_type: "code",
     client_id: client.client_id,
@@ -112,11 +126,16 @@ export const completeLogin = async (params: URLSearchParams) => {
   const pending = sessionStorage.getItem(PENDING_KEY)
   sessionStorage.removeItem(PENDING_KEY)
   if (!pending) throw new LoginError("No login started in this tab", "/")
-  const { state, returnTo } = JSON.parse(pending) as {
-    state: string
-    returnTo: string
+  let parsed: z.infer<typeof pendingLoginSchema>
+  try {
+    parsed = pendingLoginSchema.parse(JSON.parse(pending))
+  } catch (error) {
+    throw new LoginError("The login this tab started is unreadable", "/", {
+      cause: error,
+    })
   }
-  const back = safeReturn(returnTo)
+  const { state } = parsed
+  const back = safeReturn(parsed.returnTo)
 
   try {
     const as = server()
@@ -204,16 +223,23 @@ export const ncFetch = async (url: string, init: RequestInit = {}) => {
   return res
 }
 
+// Who is logged in, as /cloud/user says: the display name, or the user id
+// when there is none.
+const userSchema = z
+  .object({ id: z.string().min(1), displayname: z.string().nullish() })
+  .transform(({ id, displayname }) => ({ id, displayName: displayname || id }))
+
+export type User = z.output<typeof userSchema>
+
+const userResponseSchema = ocs(userSchema)
+
 export const getUser = async (): Promise<User | null> => {
   if (!isLoggedIn()) return null
   try {
     const res = await ncFetch("/ocs/v2.php/cloud/user?format=json")
     if (!res.ok) return null
-    const body = (await res.json()) as {
-      ocs?: { data?: { id?: string; displayname?: string } }
-    }
-    const id = body.ocs?.data?.id
-    return id ? { id, displayName: body.ocs?.data?.displayname || id } : null
+    const body = userResponseSchema.safeParse(await res.json())
+    return body.success ? body.data.ocs.data : null
   } catch {
     return null
   }

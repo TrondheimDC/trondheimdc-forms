@@ -1,0 +1,72 @@
+import { useFormContext } from "react-hook-form"
+import { cn } from "@/lib/utils"
+import * as z from "@/lib/zod"
+import { asNumber, type FieldProps, kind } from "./kind"
+
+// A step on a scale, from optionsLowest to optionsHighest. The field holds
+// the chosen step, "" for none.
+const ScaleField = ({ question: q, name, aria }: FieldProps) => {
+  const { register } = useFormContext()
+  const s = q.extraSettings
+  const low = s.optionsLowest ?? 1
+  const high = s.optionsHighest ?? 5
+  const steps = Array.from({ length: high - low + 1 }, (_, i) => low + i)
+  // 0 to 10, as for NPS: on a phone, separate buttons would be too narrow to
+  // hit, so the steps join into one bar and the gaps go to the buttons.
+  const long = steps.length > 7
+
+  return (
+    // Every step gets an equal share of the card's width, so the scale
+    // lines up with the question and description on both edges, and the end
+    // labels sit under the ends. Even 0 to 10 stays on one line on a phone.
+    <div className="flex w-full flex-col gap-2">
+      <div
+        className={cn(
+          "grid sm:gap-2",
+          long
+            ? "max-sm:divide-x max-sm:divide-border-strong max-sm:overflow-hidden max-sm:rounded-xl max-sm:border-2 max-sm:border-border-strong"
+            : "gap-1.5",
+        )}
+        style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}
+      >
+        {steps.map((step) => (
+          <label key={step} className="relative">
+            <input
+              type="radio"
+              className="peer sr-only"
+              aria-invalid={aria["aria-invalid"]}
+              value={String(step)}
+              {...register(name)}
+            />
+            <span
+              className={cn(
+                "scale-step flex h-11 cursor-pointer items-center justify-center rounded-xl border-2 border-border-strong font-display text-base tabular-nums transition-[border-color,background-color,color,scale] duration-150 hover:border-primary active:scale-95 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-on-brand peer-focus-visible:ring-[3px] peer-focus-visible:ring-ring/50",
+                long &&
+                  "max-sm:rounded-none max-sm:border-0 max-sm:text-sm max-sm:peer-focus-visible:ring-inset",
+              )}
+            >
+              {step}
+            </span>
+          </label>
+        ))}
+      </div>
+      {(s.optionsLabelLowest || s.optionsLabelHighest) && (
+        <div className="flex justify-between gap-4 text-sm text-muted-foreground">
+          <span>
+            {low}: {s.optionsLabelLowest}
+          </span>
+          <span className="text-right">
+            {high}: {s.optionsLabelHighest}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export const linearscale = kind({
+  value: () => z.string(),
+  empty: () => "",
+  answer: () => asNumber,
+  Field: ScaleField,
+})

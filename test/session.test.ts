@@ -78,6 +78,14 @@ describe("completeLogin", () => {
     ).rejects.toBeInstanceOf(LoginError)
   })
 
+  it("fails cleanly when the login this tab started is unreadable", async () => {
+    store.set("nextcloud.pending-login", JSON.stringify({ state: 7 }))
+    await expect(
+      completeLogin(new URLSearchParams("code=C&state=S")),
+    ).rejects.toBeInstanceOf(LoginError)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it("only goes back to paths on this site", () => {
     expect(safeReturn("/s/abc")).toBe("/s/abc")
     expect(safeReturn("//evil.example")).toBe("/")
@@ -111,6 +119,13 @@ describe("ncFetch", () => {
     )
     expect(body.get("grant_type")).toBe("refresh_token")
     expect(body.get("refresh_token")).toBe("RT1")
+  })
+
+  it("takes a token that isn't one for no login", () => {
+    store.set("nextcloud.token", JSON.stringify({ accessToken: "AT1" }))
+    expect(isLoggedIn()).toBe(false)
+    store.set("nextcloud.token", "not json")
+    expect(isLoggedIn()).toBe(false)
   })
 
   it("sends no token when nobody is logged in", async () => {
