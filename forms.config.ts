@@ -28,5 +28,12 @@ export default {
       description:
         "Something great or something we should fix? Tell us any time during the day, as often as you like.",
     },
+    // For the partners, after the conference.
+    {
+      slug: "tdc-2026-partner",
+      shareHash: "tn7BZ9gsRQFGjfCiemWxbn4J",
+      title: "TDC 2026 Partner Feedback",
+      oneAnswer: true,
+    },
   ],
 } satisfies FormsConfig
