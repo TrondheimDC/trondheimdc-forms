@@ -19,6 +19,7 @@ import {
   emptyValues,
   fieldName,
   formSchema,
+  prefillValues,
   restoreValues,
   status,
   toSubmission,
@@ -210,9 +211,15 @@ const Answering = ({
 }) => {
   const { user } = useSession()
   const [restored] = useState(() => readDraft(form))
+  // What the link fills in (?q{id}=…), unless a draft is being written.
+  const [prefilled] = useState(() =>
+    restored
+      ? null
+      : prefillValues(form.questions, new URLSearchParams(location.search)),
+  )
   const [resolver] = useState(() => zodResolver(formSchema(form.questions)))
   const methods = useForm({
-    defaultValues: restored ?? emptyValues(form.questions),
+    defaultValues: restored ?? prefilled ?? emptyValues(form.questions),
     resolver,
     // Every answer is checked as it changes, so a problem can go away as
     // soon as it is fixed. When one is shown is up to its Question.

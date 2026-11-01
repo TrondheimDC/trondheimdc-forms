@@ -12,6 +12,9 @@ export type Kind<V, A extends Answer> = {
   // draft is checked against it when it comes back.
   value: (q: Question) => z.ZodType<V>
   empty: (q: Question) => V
+  // The field from a link's query (?q{id}=…, repeated for several), for
+  // the types a link can answer. It is checked like a draft before use.
+  prefill?: (q: Question, given: string[]) => V
   // The answer Nextcloud gets: the field as Forms wants it in the
   // submission, or undefined while there is nothing to send.
   answer: (q: Question) => z.ZodType<A | undefined, V>
@@ -90,4 +93,17 @@ export const useShuffled = (
     )
   }, [options, shuffle])
   return order
+}
+
+// The options a link names, by id or by text (any case), in the question's
+// order. Names that match no option are dropped.
+export const namedOptions = (q: Question, given: string[]) => {
+  const names = given.map((g) => g.trim().toLowerCase())
+  return q.options
+    .filter(
+      (o) =>
+        names.includes(String(o.id)) ||
+        names.includes(o.text.trim().toLowerCase()),
+    )
+    .map((o) => o.id)
 }

@@ -5,7 +5,14 @@ import { OTHER_PREFIX } from "@/lib/answers"
 import type { Question } from "@/lib/forms"
 import { cn } from "@/lib/utils"
 import * as z from "@/lib/zod"
-import { type FieldProps, kind, option, useField, useShuffled } from "./kind"
+import {
+  type FieldProps,
+  kind,
+  namedOptions,
+  option,
+  useField,
+  useShuffled,
+} from "./kind"
 
 // Checkboxes (multiple) and radio buttons (multiple_unique), with Forms'
 // "Other" and an answer of one's own when the question allows it. The field
@@ -154,6 +161,7 @@ const value = (q: Question) =>
 export const multiple = kind({
   value,
   empty,
+  prefill: (q, given) => ({ ...empty(), chosen: namedOptions(q, given) }),
   answer,
   rules: (q) => {
     const { min, max } = limits(q)
@@ -178,6 +186,10 @@ export const multiple = kind({
 export const multipleUnique = kind({
   value,
   empty,
+  prefill: (q, given) => ({
+    ...empty(),
+    chosen: namedOptions(q, given).slice(0, 1),
+  }),
   answer,
   Field: ChoicesField,
 })

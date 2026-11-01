@@ -5,6 +5,7 @@ import {
   emptyValues,
   fieldName,
   formSchema,
+  prefillValues,
   restoreValues,
   status,
   toSubmission,
@@ -371,5 +372,51 @@ describe("restoreValues", () => {
         q1: { values: ["hei"], other: "", otherChecked: false },
       }),
     ).toBeNull()
+  })
+})
+
+describe("prefillValues", () => {
+  const options = [
+    { id: 47, text: "Tickets" },
+    { id: 48, text: "Partner" },
+  ]
+  const questions = [
+    q({ id: 1, type: "short" }),
+    q({ id: 2, type: "file" }),
+    q({ id: 3, type: "multiple", options }),
+    q({ id: 4, type: "multiple_unique", options }),
+    q({ id: 5, type: "dropdown", options }),
+  ]
+  const fill = (query: string) =>
+    prefillValues(questions, new URLSearchParams(query))
+
+  it("ticks options a link names, by text in any case or by id", () => {
+    expect(fill("q3=partner")).toEqual({
+      ...emptyValues(questions),
+      q3: { chosen: [48], otherChosen: false, other: "" },
+    })
+    expect(fill("q3=48&q3=Tickets")?.q3).toEqual({
+      chosen: [47, 48],
+      otherChosen: false,
+      other: "",
+    })
+  })
+
+  it("takes one option for a radio question or a dropdown", () => {
+    expect(fill("q4=Partner&q4=Tickets")?.q4).toEqual({
+      chosen: [47],
+      otherChosen: false,
+      other: "",
+    })
+    expect(fill("q5=Partner")?.q5).toBe("48")
+  })
+
+  it("fills in text as given", () => {
+    expect(fill("q1=Example%20AS")?.q1).toBe("Example AS")
+  })
+
+  it("starts the form as usual when the link fills in nothing it can", () => {
+    expect(fill("")).toBeNull()
+    expect(fill("q3=Nope&q2=x&q9=Partner&utm_source=site")).toBeNull()
   })
 })

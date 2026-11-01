@@ -2,7 +2,13 @@ import { useFormContext, useWatch } from "react-hook-form"
 import { Select } from "@/components/ui/field"
 import { copy } from "@/copy"
 import * as z from "@/lib/zod"
-import { asNumber, type FieldProps, kind, useShuffled } from "./kind"
+import {
+  asNumber,
+  type FieldProps,
+  kind,
+  namedOptions,
+  useShuffled,
+} from "./kind"
 
 // One option out of a list, as the native select, so phones get their own
 // picker. The field holds the chosen option's id, "" for none.
@@ -34,6 +40,7 @@ export const dropdown = kind({
       .string()
       .refine((v) => v === "" || q.options.some((o) => String(o.id) === v)),
   empty: () => "",
+  prefill: (q, given) => String(namedOptions(q, given)[0] ?? ""),
   answer: () => asNumber,
   Field: DropdownField,
 })

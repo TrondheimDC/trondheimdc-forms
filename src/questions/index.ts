@@ -108,6 +108,32 @@ export const restoreValues = (questions: Question[], stored: unknown) => {
   return restored ? values : null
 }
 
+// Answers a link fills in: ?q{id}=… per question, by option id or text
+// for choices, repeated for several. Each is checked like a draft, and a
+// type a link can't answer is left empty. Null when the link fills in
+// nothing, so the form starts as usual.
+export const prefillValues = (
+  questions: Question[],
+  params: URLSearchParams,
+) => {
+  let filled = false
+  const values = Object.fromEntries(
+    questions.map((q) => {
+      const name = fieldName(q.id)
+      const k = kindOf(q)
+      const given = params.getAll(name)
+      const value =
+        given.length && k.prefill
+          ? k.value(q).safeParse(k.prefill(q, given))
+          : null
+      const fits = !!value?.success && status(q, value.data) !== "blank"
+      if (fits) filled = true
+      return [name, fits && value?.success ? value.data : k.empty(q)]
+    }),
+  )
+  return filled ? values : null
+}
+
 // The `answers` body of POST /api/v3/forms/{id}/submissions, by question id,
 // from what the form's schema gave. Unanswered questions are left out rather
 // than sent empty.

@@ -55,6 +55,7 @@ const ShortField = ({ question: q, name, aria }: FieldProps) => {
 export const short = kind({
   value: () => z.string(),
   empty: () => "",
+  prefill: (_q, given) => given[0] ?? "",
   answer: () => asText,
   rules: shortRules,
   Field: ShortField,
@@ -68,6 +69,7 @@ const LongField = ({ name, aria }: FieldProps) => {
 export const long = kind({
   value: () => z.string(),
   empty: () => "",
+  prefill: (_q, given) => given[0] ?? "",
   answer: () => asText,
   Field: LongField,
 })
